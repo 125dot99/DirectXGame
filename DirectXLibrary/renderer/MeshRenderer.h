@@ -1,23 +1,27 @@
 #pragma once
+#include <memory>
+
 #include "../object/GameObject.h"
+#include "../dx12/IMesh.h"
+#include "../dx12/IMaterial.h"
 #include "FbxAnimation.h"
 
 namespace gamelib
 {
+//メッシュの描画クラス
 class MeshRenderer
 {
+private:
+	GameObject* pGameObject;
+	std::weak_ptr<IMesh> w_pMesh;
+	std::weak_ptr<IMaterial> w_pMaterial;
+	std::weak_ptr<FbxAnimation> w_pFbxAnimation;
 public:
 	MeshRenderer();
-	~MeshRenderer();
 
-	void Register(const std::string& shaderTag, const std::string& objectName, const std::string& modelName);
+	MeshRenderer(GameObject* pGameObject, const std::string& _meshName, const std::string& _materialName, std::weak_ptr<FbxAnimation> w_pFbxAnimation = {});
+	MeshRenderer(GameObject* pGameObject, std::shared_ptr<IMesh> s_pMesh, std::shared_ptr<IMaterial> s_pMaterial, std::weak_ptr<FbxAnimation> w_pFbxAnimation = {});
 
-	void Draw(const std::string& shaderTag);
-
-	void Draw(const GameObject& gameObject, const std::weak_ptr<IMesh>& w_p_mesh, bool isMaterial = true);
-	void Draw(const GameObject& gameObject, const std::weak_ptr<IMesh>& w_p_mesh, FbxAnimation* pAnimation, bool isMaterial = true);
-	
-	//ゲームオブジェクトに付属するコライダーの描画
-	//void DrawCollider(const GameObject& gameObject, const std::string _primitive);
+	void Draw();
 };
 } // namespace gamelib

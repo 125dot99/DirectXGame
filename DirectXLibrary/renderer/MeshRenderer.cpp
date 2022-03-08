@@ -8,36 +8,39 @@ gamelib::MeshRenderer::MeshRenderer()
 
 }
 
-gamelib::MeshRenderer::~MeshRenderer()
+gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, const std::string& _meshName, const std::string& _materialName, std::weak_ptr<FbxAnimation> w_p_fbxAnima)
 {
-
-}
-
-void gamelib::MeshRenderer::Register(const std::string& shaderTag, const std::string& objectName, const std::string& modelName)
-{
-
-}
-
-void gamelib::MeshRenderer::Draw(const std::string& shaderTag)
-{
-
-}
-
-void gamelib::MeshRenderer::Draw(const GameObject& gameObject, const std::weak_ptr<IMesh>& w_p_mesh, bool isMaterial)
-{
-	if (!&gameObject || !w_p_mesh.lock())
+	this->pGameObject = pGameObject;
+	this->w_pFbxAnimation = w_pFbxAnimation;
+	w_pMesh = ResourceManager::GetInstance()->GetMesh(_meshName);
+	if (_materialName != "")
 	{
-		return;
+		w_pMaterial = ResourceManager::GetInstance()->GetMaterial(_materialName);
 	}
-	gameObject.GraphicsCommand();
-	w_p_mesh.lock()->Draw(isMaterial);
 }
 
-void gamelib::MeshRenderer::Draw(const GameObject& gameObject, const std::weak_ptr<IMesh>& w_p_mesh, FbxAnimation* pAnimation, bool isMaterial)
+gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, std::shared_ptr<IMesh> s_pMesh, std::shared_ptr<IMaterial> s_pMaterial, std::weak_ptr<FbxAnimation> w_p_fbxAnima)
 {
-	if (pAnimation)
+	this->pGameObject = pGameObject;
+	this->w_pFbxAnimation = w_pFbxAnimation;
+	w_pMesh = s_pMesh;
+	if (s_pMaterial != nullptr)
 	{
-		pAnimation->GraphicsCommand();
+		w_pMaterial = s_pMaterial;
 	}
-	Draw(gameObject, w_p_mesh, isMaterial);
 }
+
+void gamelib::MeshRenderer::Draw()
+{
+	if (w_pFbxAnimation.lock())
+	{
+		w_pFbxAnimation.lock()->GraphicsCommand();
+	}
+	if (w_pMaterial.lock())
+	{
+		w_pMaterial.lock()->Register();
+	}
+	pGameObject->GraphicsCommand();
+	w_pMesh.lock()->Draw();
+}
+

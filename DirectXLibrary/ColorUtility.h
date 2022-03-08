@@ -1,6 +1,6 @@
 #pragma once
-#include "../math/Vector.h"
-#include "../math/MyMath.h"
+#include "math/Vector.h"
+#include "math/MyMath.h"
 
 namespace gamelib
 {
