@@ -19,7 +19,6 @@ struct IMesh abstract
 	/// <summary>
 	/// 描画コマンド
 	/// </summary>
-	/// <param name="isMtlCommand">マテリアルのGPUコマンドフラグ</param>
-	virtual void Draw(bool isMtlCommand = true) = 0;
+	virtual void Draw() = 0;
 };
 } // namespace gamelib

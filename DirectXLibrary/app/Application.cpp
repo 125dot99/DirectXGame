@@ -98,3 +98,8 @@ int gamelib::Application::Run()
 	return 1;
 }
 
+void gamelib::Application::ShutDown()
+{
+	PostMessage(hwnd, WM_CLOSE, 0, 0);
+}
+

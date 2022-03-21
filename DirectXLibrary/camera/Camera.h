@@ -29,11 +29,11 @@ struct CBCameraMatrix
 class Camera : public ICameraRead
 {
 private:
-	std::unique_ptr<ConstBuffer> cbuffer;
+	std::unique_ptr<ConstBuffer> u_pConstBuffer;
 	std::unique_ptr<ICameraState> state;
 
 protected:
-	std::unique_ptr<CameraTransform> transform;
+	std::unique_ptr<CameraTransform> u_pTransform;
 	//ƒrƒ…[•ÏŠ·s—ñ
 	Matrix4 matView;
 	Matrix4 matProjction;

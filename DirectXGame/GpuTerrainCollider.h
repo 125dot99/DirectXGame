@@ -13,18 +13,16 @@ class GpuTerrainCollider
 private:
 	Vector2 rectScale;
 	Vector2 halfSize;
-	Texture* heightTexture;
 
-	std::shared_ptr<DescriptorHeap> heap;
+	std::shared_ptr<DescriptorHeap> descHeap;
 	std::unique_ptr<ConstBuffer> inputBuff;
 	std::unique_ptr<RWStructuredBuffer> uavBuffer;
-	IPipelineState* pipeline;
+	std::weak_ptr<Texture> heightTexture;
+	std::weak_ptr<IPipelineState> pipeline;
 public:
 	GpuTerrainCollider();
 
-	void Initialize(Texture* pHeightMap, const Vector2& _planeObjectScale);
-
-	void Add();
+	void Initialize(std::weak_ptr<Texture> pHeightMap, const Vector2& _planeObjectScale);
 
 	void Command(GameObject* pObject);
 };

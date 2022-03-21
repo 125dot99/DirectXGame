@@ -10,28 +10,28 @@
 
 void gamelib::Camera::TransferBuffer()
 {
-	cbuffer->Map(&CBCameraMatrix(
+	u_pConstBuffer->Map(&CBCameraMatrix(
 		matView, 
 		matProjction,
 		matViewProj, 
 		MatrixBillboard(matView, false), 
-		transform->eye));
+		u_pTransform->eye));
 }
 
 gamelib::Camera::Camera()
 {
-	cbuffer = std::make_unique<ConstBuffer>();
-	cbuffer->Init((UINT)ROOT_PARAMETER::CAMERA, sizeof(CBCameraMatrix));
-	transform = std::make_unique<CameraTransform>();
-	transform->eye = Vector3(0, 0, -10);
-	transform->target = Vector3::Zero();
-	transform->up = Vector3::Up();
+	u_pConstBuffer = std::make_unique<ConstBuffer>();
+	u_pConstBuffer->Init((UINT)ROOT_PARAMETER::CAMERA, sizeof(CBCameraMatrix));
+	u_pTransform = std::make_unique<CameraTransform>();
+	u_pTransform->eye = Vector3(0, 0, -10);
+	u_pTransform->target = Vector3::Zero();
+	u_pTransform->up = Vector3::Up();
 	state = std::make_unique<CameraStaticMode>();
 }
 
 gamelib::Camera::Camera(const Camera& other) : Camera()
 {
-	*transform = *other.transform;
+	*u_pTransform = *other.u_pTransform;
 	matProjction = other.matProjction;
 }
 
@@ -47,7 +47,7 @@ void gamelib::Camera::Update()
 {
 	state->Update();
 	//ビュー行列
-	matView = MatrixLookAtLH(transform->eye, transform->target, transform->up);
+	matView = MatrixLookAtLH(u_pTransform->eye, u_pTransform->target, u_pTransform->up);
 	//ビュー行列とプロジェクション行列を合成
 	matViewProj = matView * matProjction;
 }
@@ -61,27 +61,27 @@ void gamelib::Camera::RegisterCommand()
 { 
 	//バッファの転送
 	TransferBuffer();
-	cbuffer->GraphicsCommand();
+	u_pConstBuffer->GraphicsCommand();
 }
 
 gamelib::CameraTransform* gamelib::Camera::GetTransform() const
 {
-	return transform.get();
+	return u_pTransform.get();
 }
 
 const gamelib::Vector3& gamelib::Camera::GetEye() const
 { 
-	return transform->eye; 
+	return u_pTransform->eye; 
 }
 
 const gamelib::Vector3& gamelib::Camera::GetTarget() const
 { 
-	return transform->target;
+	return u_pTransform->target;
 }
 
 const gamelib::Vector3& gamelib::Camera::GetUp() const
 { 
-	return transform->up;
+	return u_pTransform->up;
 }
 
 const gamelib::Matrix4& gamelib::Camera::GetMatView() const
@@ -101,6 +101,6 @@ const gamelib::Matrix4& gamelib::Camera::GetMatViewProjection() const
 
 gamelib::Vector3 gamelib::Camera::GetDirection() const
 { 
-	return transform->Direction();
+	return u_pTransform->Direction();
 }
 

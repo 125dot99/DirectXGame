@@ -2,26 +2,27 @@
 #include "object/GameObject.h"
 #include "renderer/FbxAnimation.h"
 #include "gametemp/IObjectState.h"
+#include "TalkObserver.h"
 
 using namespace gamelib;
 class Player : public GameObject
 {
 private:
-	enum class STATE_ENUM { WAIT, MOVE, TALK };
 	friend class PlayerWait;
 	friend class PlayerMove;
 	friend class PlayerTalk;
+	enum class STATE_ENUM { WAIT, MOVE, TALK };
 	STATE_ENUM state_enum;
+	std::unique_ptr<IObjectState> state;
 
 	float speed;
 	Vector3 accel;
 	Vector3 velocity;
 
-	FbxAnimation* anima;
-	std::unique_ptr<IObjectState> state;
-	bool IsMove();
+	std::shared_ptr<FbxAnimation> s_pFbxAnimation;
+	std::weak_ptr<TalkObserver> w_p_talkObserver;
 public:
-	Player(FbxAnimation* anima);
+	Player(std::shared_ptr<FbxAnimation> s_pFbxAnimation, std::weak_ptr<TalkObserver> w_p_talkObserver);
 	//èâä˙âª
 	void Initialize() override;
 	//çXêV

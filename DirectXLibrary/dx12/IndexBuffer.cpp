@@ -6,7 +6,7 @@
 void gamelib::IndexBuffer::Create()
 {
 	indexSize = (UINT)indices.size();
-	if (indexSize == 0 || resource)
+	if (indexSize == 0 || com_pResource)
 	{
 		return;
 	}
@@ -17,22 +17,22 @@ void gamelib::IndexBuffer::Create()
 		&CD3DX12_RESOURCE_DESC::Buffer(sizeIB),
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&resource));
+		IID_PPV_ARGS(&com_pResource));
 	assert(SUCCEEDED(result) && "インデックスバッファ生成失敗");
 
 	Map();
 
-	iBView.BufferLocation = resource->GetGPUVirtualAddress();
-	iBView.Format = DXGI_FORMAT_R16_UINT;
-	iBView.SizeInBytes = sizeIB;
+	ibView.BufferLocation = com_pResource->GetGPUVirtualAddress();
+	ibView.Format = DXGI_FORMAT_R16_UINT;
+	ibView.SizeInBytes = sizeIB;
 }
 
 void gamelib::IndexBuffer::Map()
 {
 	indexSize = (UINT)indices.size();
 	unsigned short* indexMap = nullptr;
-	HRESULT result = resource->Map(0, nullptr, (void**)&indexMap);
+	HRESULT result = com_pResource->Map(0, nullptr, (void**)&indexMap);
 	assert(SUCCEEDED(result) && "インデックスバッファ転送失敗");
 	std::copy(indices.begin(), indices.end(), indexMap);
-	resource->Unmap(0, nullptr);
+	com_pResource->Unmap(0, nullptr);
 }

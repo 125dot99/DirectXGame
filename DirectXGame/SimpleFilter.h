@@ -2,6 +2,8 @@
 #include <memory>
 #include "posteffect/IPostProcess.h"
 
+using namespace gamelib;
+
 enum class FILTER_STATE_ENUM
 {
 	NONE,
@@ -13,7 +15,6 @@ enum class FILTER_STATE_ENUM
 	BLOOM,
 };
 
-using namespace gamelib;
 //ポストエフェクトを扱うクラス
 class SimpleFilter
 {
@@ -26,5 +27,6 @@ public:
 	void Move(int value);
 	void ChangeFilter(FILTER_STATE_ENUM filterEnum);
 	void Draw();
+	int GetFilterIndex() const;
 };
 

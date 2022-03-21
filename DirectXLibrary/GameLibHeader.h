@@ -3,7 +3,7 @@
 #include "scene/BaseScene.h"
 
 //生成クラス
-#include "Factory.h"
+#include "other/Factory.h"
 
 //カメラ
 #include "camera/Camera.h"
@@ -24,18 +24,14 @@
 #include "collision/ColliderData.h"
 #include "collision/CollisionManager.h"
 
-//パイプライン
-#include "pipeline/IPipelineState.h"
-#include "pipeline/PipelineManager.h"
+//オブジェクト描画クラス
+#include "renderer/RenderingPipeline.h"
+#include "renderer/BillboardRenderer.h"
 
 //スプライト
 #include "renderer/SpriteRenderer.h"
 #include "renderer/SpriteFont.h"
 #include "renderer/SpriteUtil.h"
-
-//オブジェクト描画クラス
-#include "renderer/MeshRenderer.h"
-#include "renderer/BillboardRenderer.h"
 
 //アニメーション
 #include "renderer/FbxAnimation.h"

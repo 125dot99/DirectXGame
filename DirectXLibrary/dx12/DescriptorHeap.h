@@ -12,7 +12,7 @@ class DescriptorHeap
 private:
 	UINT handleIncrementSize;
 
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> com_pDescriptorHeap;
 public:
 	/// <summary>
 	/// デスクリプタヒープの生成
@@ -26,15 +26,15 @@ public:
 	/// </summary>
 	inline void Command()
 	{
-		Dx12Renderer::GetCommandList()->SetDescriptorHeaps(1, descHeap.GetAddressOf());
+		Dx12Renderer::GetCommandList()->SetDescriptorHeaps(1, com_pDescriptorHeap.GetAddressOf());
 	}
 	
 	/// <summary>
-	/// 型を変換してアクセス可能
+	/// 明示的な型変換
 	/// </summary>
-	inline operator ID3D12DescriptorHeap*() const
+	inline explicit operator ID3D12DescriptorHeap*() const
 	{ 
-		return descHeap.Get(); 
+		return com_pDescriptorHeap.Get();
 	}
 
 	/// <summary>
@@ -44,8 +44,8 @@ public:
 	/// <returns></returns>
 	inline D3D12_CPU_DESCRIPTOR_HANDLE const GetCPUHandle(UINT index)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE handle(descHeap->GetCPUDescriptorHandleForHeapStart());
-		handle.ptr = UINT64((INT64)handle.ptr + INT64(index) * INT64(handleIncrementSize));
+		D3D12_CPU_DESCRIPTOR_HANDLE handle(com_pDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		handle.ptr = handle.ptr + static_cast<UINT64>(index) * static_cast<UINT64>(handleIncrementSize);
 		return handle;
 	}
 
@@ -56,8 +56,8 @@ public:
 	/// <returns></returns>
 	inline D3D12_GPU_DESCRIPTOR_HANDLE const GetGPUHandle(UINT index)
 	{
-		D3D12_GPU_DESCRIPTOR_HANDLE handle(descHeap->GetGPUDescriptorHandleForHeapStart());
-		handle.ptr = UINT64((INT64)handle.ptr + INT64(index) * INT64(handleIncrementSize));
+		D3D12_GPU_DESCRIPTOR_HANDLE handle(com_pDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+		handle.ptr = handle.ptr + static_cast<UINT64>(index) * static_cast<UINT64>(handleIncrementSize);
 		return handle;
 	}
 };

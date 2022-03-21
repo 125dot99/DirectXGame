@@ -10,9 +10,9 @@ class DebugRay
 private:
 	int drawCallCoount;
 
-	std::unique_ptr<VertexBuffer<VertexLineSizeColor>> vertexBuffer;
+	std::unique_ptr<VertexBuffer<VertexLineSizeColor>> u_pVertexBuffer;
 
-	std::unique_ptr<IPipelineState> pipeline;
+	std::unique_ptr<IPipelineState> u_pPipeline;
 public:
 	//ƒŒƒC‚Ì‰Šú‰»
 	DebugRay();

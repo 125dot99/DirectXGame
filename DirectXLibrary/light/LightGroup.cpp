@@ -4,13 +4,12 @@
 
 gamelib::LightGroup::LightGroup() : ambientLight(Vector3::One())
 {
-	cbuffer = std::make_unique<ConstBuffer>();
-	cbuffer->Init((UINT)ROOT_PARAMETER::LIGHT, sizeof(CBLightData));
-}
+	u_pConstBuffer = std::make_unique<ConstBuffer>();
+	u_pConstBuffer->Init((UINT)ROOT_PARAMETER::LIGHT, sizeof(CBLightData));
 
-gamelib::LightGroup::~LightGroup()
-{
-
+	vecDirectionalLights.resize(CBLightData::MAX_LIGHT_BUFFER);
+	vecPointLights.resize(CBLightData::MAX_LIGHT_BUFFER);
+	vecSpotLights.resize(CBLightData::MAX_LIGHT_BUFFER);
 }
 
 void gamelib::LightGroup::SetAmbientLight(const Vector3& color)
@@ -18,31 +17,31 @@ void gamelib::LightGroup::SetAmbientLight(const Vector3& color)
 	ambientLight = color;
 }
 
-void gamelib::LightGroup::SetDirectionalLight(DirectionalLight* directionalLight, UINT index)
+void gamelib::LightGroup::SetDirectionalLight(DirectionalLight* pDirectionalLight, UINT index)
 {
 	if (index >= CBLightData::MAX_LIGHT_BUFFER)
 	{
 		return;
 	}
-	directionalLights[index] = directionalLight;
+	vecDirectionalLights[index] = pDirectionalLight;
 }
 
-void gamelib::LightGroup::SetPointLight(PointLight* pointLight, UINT index)
+void gamelib::LightGroup::SetPointLight(PointLight* pPointLight, UINT index)
 {
 	if (index >= CBLightData::MAX_LIGHT_BUFFER)
 	{
 		return;
 	}
-	pointLights[index] = pointLight;
+	vecPointLights[index] = pPointLight;
 }
 
-void gamelib::LightGroup::SetSpotLight(SpotLight* spotLight, UINT index)
+void gamelib::LightGroup::SetSpotLight(SpotLight* pSpotLight, UINT index)
 {
 	if (index >= CBLightData::MAX_LIGHT_BUFFER)
 	{
 		return;
 	}
-	spotLights[index] = spotLight;
+	vecSpotLights[index] = pSpotLight;
 }
 
 void gamelib::LightGroup::Update()
@@ -51,25 +50,25 @@ void gamelib::LightGroup::Update()
 	lightBuffer.ambient = ambientLight;
 	for (int i = 0; i < CBLightData::MAX_LIGHT_BUFFER; i++)
 	{
-		if (directionalLights[i])
+		if (vecDirectionalLights[i])
 		{
-			lightBuffer.dirLights[i].direction = directionalLights[i]->direction;
-			lightBuffer.dirLights[i].color = directionalLights[i]->color;
+			lightBuffer.dirLights[i].direction = vecDirectionalLights[i]->direction;
+			lightBuffer.dirLights[i].color = vecDirectionalLights[i]->color;
 		}
-		if (pointLights[i])
+		if (vecPointLights[i])
 		{
-			lightBuffer.pointLights[i] = *pointLights[i];
+			lightBuffer.pointLights[i] = *vecPointLights[i];
 		}
-		if (spotLights[i])
+		if (vecSpotLights[i])
 		{
-			lightBuffer.spotLights[i] = *spotLights[i];
+			lightBuffer.spotLights[i] = *vecSpotLights[i];
 		}
 	}
-	cbuffer->Map(&lightBuffer);
+	u_pConstBuffer->Map(&lightBuffer);
 }
 
 void gamelib::LightGroup::RegisterAll()
 {
 	Update();
-	cbuffer->GraphicsCommand();
+	u_pConstBuffer->GraphicsCommand();
 }

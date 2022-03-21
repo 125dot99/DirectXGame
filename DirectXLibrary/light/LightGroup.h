@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "LightData.h"
 #include "../dx12/ConstBuffer.h"
 
@@ -19,24 +20,24 @@ private:
 	//環境光
 	Vector3 ambientLight;
 	//方向性ライト
-	DirectionalLight* directionalLights[CBLightData::MAX_LIGHT_BUFFER];
+	std::vector<DirectionalLight*> vecDirectionalLights;
 	//ポイントライト
-	PointLight* pointLights[CBLightData::MAX_LIGHT_BUFFER];
+	std::vector<PointLight*> vecPointLights;
 	//スポットライト
-	SpotLight* spotLights[CBLightData::MAX_LIGHT_BUFFER];
+	std::vector<SpotLight*> vecSpotLights;
 	//ライトの定数バッファ
-	std::unique_ptr<ConstBuffer> cbuffer;
+	std::unique_ptr<ConstBuffer> u_pConstBuffer;
 public:
 	LightGroup();
-	~LightGroup();
+	~LightGroup() = default;
 
 	void SetAmbientLight(const Vector3& color);
 
-	void SetDirectionalLight(DirectionalLight* directionalLight, UINT index = 0);
+	void SetDirectionalLight(DirectionalLight* pDirectionalLight, UINT index = 0);
 
-	void SetPointLight(PointLight* pointLight, UINT index = 0);
+	void SetPointLight(PointLight* pPointLight, UINT index = 0);
 
-	void SetSpotLight(SpotLight* spotLight, UINT index = 0);
+	void SetSpotLight(SpotLight* pSpotLight, UINT index = 0);
 
 	void Update();
 

@@ -2,30 +2,30 @@
 
 gamelib::SceneManager::SceneManager(BaseScene* pMainRootScene)
 {
-	scene.reset(pMainRootScene);
-	scene->Initialize();
+	u_pScene.reset(pMainRootScene);
+	u_pScene->Initialize();
 }
 
 gamelib::SceneManager::~SceneManager()
 {
-	scene->Finalize();
+	u_pScene->Finalize();
 }
 
 void gamelib::SceneManager::Next()
 {
-	scene->NextScene(this);
+	u_pScene->NextScene(this);
 }
 
 void gamelib::SceneManager::ResetScene()
 {
-	scene->Finalize();
-	scene->Initialize();
+	u_pScene->Finalize();
+	u_pScene->Initialize();
 }
 
 void gamelib::SceneManager::Update()
 {
-	scene->Update();
-	if (scene->GetNextScene())
+	u_pScene->Update();
+	if (u_pScene->GetNextScene())
 	{
 		Next();
 	}
@@ -33,13 +33,13 @@ void gamelib::SceneManager::Update()
 
 void gamelib::SceneManager::Draw()
 {
-	scene->Draw();
+	u_pScene->Draw();
 }
 
 void gamelib::SceneManager::ChangeScene(BaseScene* newScene)
 {
-	scene->Finalize();
-	scene.reset(newScene);
-	scene->Initialize();
-	scene->Update();
+	u_pScene->Finalize();
+	u_pScene.reset(newScene);
+	u_pScene->Initialize();
+	u_pScene->Update();
 }

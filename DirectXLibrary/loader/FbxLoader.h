@@ -17,7 +17,7 @@ private:
 	~FbxLoader() = delete;
 	static SkinMesh* LoadModelFromFile(const std::string& modelName);
 	//再帰的にノード構成を解析
-	static void ParseNodeRecursive(SkinMesh* model, fbxsdk::FbxNode* fbxNode, FbxMeshNode* parent = nullptr);
+	static void ParseNodeRecursive(SkinMesh* model, fbxsdk::FbxNode* fbxNode, FbxMeshNode* pParentNode = nullptr);
 	//メッシュ読み込み
 	static void ParseMesh(SkinMesh* model, fbxsdk::FbxNode* fbxNode);
 	//頂点座標読み取り
@@ -56,8 +56,6 @@ public:
 	/// <param name="modelName"></param>
 	/// <returns></returns>
 	static SkinMesh* ReadFbxModel(const std::string& modelName);
-
-	static void* ReadFbxScene(const std::string& modelName);
 };
 } // namespace gamelib
 

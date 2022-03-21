@@ -1,26 +1,15 @@
 #include "Material.h"
 
 #include "MaterialData.h"
-#include "../pipeline/IPipelineState.h"
 
-
-gamelib::Material::Material() : ambient(0.5f, 0.5f, 0.5f), diffuse(0.8f, 0.8f, 0.8f), alpha(1.0f)
+void gamelib::LambertMaterial::Create()
 {
 
 }
 
-void gamelib::Material::Initialize()
+void gamelib::PhongMaterial::Create()
 {
-	cbuffer = std::make_unique<ConstBuffer>();
-	cbuffer->Init((int)ROOT_PARAMETER::MATERIAL, sizeof(CBBasicMaterial));
-	cbuffer->Map(&CBBasicMaterial(ambient, diffuse, specular, alpha));
-}
-
-void gamelib::Material::Command()
-{
-	cbuffer->GraphicsCommand();
-	for (auto x : vec_w_p_textures)
-	{
-		x.lock()->GraphicsSRVCommand((int)ROOT_PARAMETER::MATERIAL + 1);
-	}
+	u_pConstBuffer = std::make_unique<ConstBuffer>();
+	u_pConstBuffer->Init((int)ROOT_PARAMETER::MATERIAL, sizeof(CBBasicMaterial));
+	u_pConstBuffer->Map(&CBBasicMaterial(ambient, diffuse, specular, alpha));
 }

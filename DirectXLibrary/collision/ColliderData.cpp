@@ -5,8 +5,8 @@
 gamelib::MeshCollider::MeshCollider(std::weak_ptr<IMesh> mesh)
 {
 	Mesh* pmesh = dynamic_cast<Mesh*>(mesh.lock().get());
-	const auto& vertices = pmesh->vertexBuffer->vertices;
-	const auto& indices = pmesh->indexBuffer->indices;
+	const auto& vertices = pmesh->u_pVertexBuffer->vertices;
+	const auto& indices = pmesh->u_pIndexBuffer->indices;
 	const int triangleSize = (int)indices.size() / 3;
 	for (int i = 0; i < triangleSize; i++)
 	{

@@ -8,18 +8,17 @@ GpuTerrainCollider::GpuTerrainCollider()
 {
 	inputBuff = std::make_unique<ConstBuffer>();
 	inputBuff->Init(0, sizeof(Vector3));
-	heap = std::make_shared<DescriptorHeap>();
-	heap->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+	descHeap = std::make_shared<DescriptorHeap>();
+	descHeap->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 	uavBuffer = std::make_unique<RWStructuredBuffer>();
-	uavBuffer->CreateUAV(sizeof(float), heap, 0);
-
+	uavBuffer->CreateUAV(sizeof(float), descHeap, 0);
 	pipeline = PipelineManager::GetInstance()->GetPipelineState("CSTest");
 }
 
-void GpuTerrainCollider::Initialize(Texture* pHeightMap, const Vector2& _planeObjectScale)
+void GpuTerrainCollider::Initialize(std::weak_ptr<Texture> pHeightMap, const Vector2& _planeObjectScale)
 {
 	heightTexture = pHeightMap;
-	Vector2 size = heightTexture->GetSize();
+	Vector2 size = heightTexture.lock()->GetSize();
 	halfSize = size / 2.0f;
 	rectScale = halfSize / _planeObjectScale;
 }
@@ -38,9 +37,9 @@ void GpuTerrainCollider::Command(GameObject* pObject)
 	//	ImGui::Text("pos : %f, %f, %f", v.x, v.y, v.z);
 	//}
 	//ImGui::End();
-	pipeline->Command();
+	pipeline.lock()->Command();
 	inputBuff->ComputeCommand();
-	heightTexture->ComputeSRVCommand(1);
+	heightTexture.lock()->ComputeSRVCommand(1);
 	uavBuffer->ComputeUAVCommand(2);
 	uavBuffer->Dispatch(1, 1, 1);
 

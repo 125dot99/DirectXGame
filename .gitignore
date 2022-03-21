@@ -3,7 +3,3 @@ DirectXLibrary/imgui/
 DirectXLibrary/HLSL/
 DirectXGame.sln
 DirectXGame/HLSL/
-/DirectXGame/Scene/SampleScene.cpp
-/DirectXGame/Scene/SampleScene.h
-/DirectXGame/Scene/ScoreScene.cpp
-/DirectXGame/Scene/ScoreScene.h

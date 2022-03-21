@@ -1,9 +1,11 @@
 #pragma once
-#include "CollisionPrimitive.h"
+#include <vector>
+
 #include "BaseCollider.h"
+#include "Collision.h"
+#include "CollisionPrimitive.h"
 #include "../object/GameObject.h"
 #include "../dx12/IMesh.h"
-#include <vector>
 
 namespace gamelib
 {
@@ -16,11 +18,22 @@ public:
 	Box2DCollider(const Vector2& offset, const Vector2& size) : offset(offset), size(size) {}
 	inline void Update() override
 	{
-		Vector2 pos = gameObject->GetPosition();
+		Vector2 pos = pGameObject->GetPosition();
 		pos += offset;
 		minPosition = pos - size;
 		maxPosition = pos + size;
 	}
+	inline bool Dispatch(BaseCollider& collider) override
+	{
+		return collider.IsCollision(*this);
+	}
+	inline bool IsCollision(primitive::Box2D& box) override 
+	{ 
+		return Collision::CheckHitBox2D_Box2D(*this, box);
+	}
+	inline bool IsCollision(primitive::Sphere2D& sphere) override { return false; }
+	inline bool IsCollision(primitive::Box& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere& sphere) override { return false; }
 	inline PRIMITIVE_TYPE GetType() const override { return PRIMITIVE_TYPE::BOX2D; }
 };
 
@@ -35,9 +48,21 @@ public:
 	}
 	inline void Update() override
 	{
-		Vector2 pos = gameObject->GetPosition();
+		Vector2 pos = pGameObject->GetPosition();
 		center = pos + offset;
 	}
+	inline bool Dispatch(BaseCollider& collider) override
+	{
+		return collider.IsCollision(*this);
+	}
+	inline bool IsCollision(primitive::Box2D& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere2D& sphere) override 
+	{ 
+		return Collision::CheckHitSphere2D_Sphere2D(*this, sphere);
+	}
+	inline bool IsCollision(primitive::Box& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere& sphere) override { return false; }
+
 	inline PRIMITIVE_TYPE GetType() const override { return PRIMITIVE_TYPE::SPHERE2D; }
 };
 
@@ -50,12 +75,26 @@ public:
 	BoxCollider(const Vector3& offset, const Vector3& size) : offset(offset), size(size) {}
 	inline void Update()
 	{
-		Vector3 pos = gameObject->GetWorldPosition();
+		Vector3 pos = pGameObject->GetWorldPosition();
 		pos += offset;
 		minPosition = pos - size;
 		maxPosition = pos + size;
 	}
-	inline PRIMITIVE_TYPE GetType() const override { return PRIMITIVE_TYPE::BOX; }
+	inline bool Dispatch(BaseCollider& collider) override
+	{
+		return collider.IsCollision(*this);
+	}
+	inline bool IsCollision(primitive::Box2D& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere2D& sphere) override { return false; }
+	inline bool IsCollision(primitive::Box& box) override
+	{
+		return Collision::CheckHitBox_Box(*this, box);
+	}
+	inline bool IsCollision(primitive::Sphere& sphere) override 
+	{ 
+		return Collision::CheckHitSphere_Box(sphere, *this);
+	}
+	inline PRIMITIVE_TYPE GetType() const override  { return PRIMITIVE_TYPE::BOX; }
 };
 
 class SphereCollider : public BaseCollider, public primitive::Sphere
@@ -69,8 +108,23 @@ public:
 	}
 	inline void Update() override
 	{
-		Vector3 pos = gameObject->GetWorldPosition();
+		Vector3 pos = pGameObject->GetWorldPosition();
 		center = pos + offset;
+	}
+	inline bool Dispatch(BaseCollider& collider) override
+	{
+		return collider.IsCollision(*this);
+	}
+	inline bool IsCollision(primitive::Box2D& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere2D& sphere) override { return false; }
+	inline bool IsCollision(primitive::Box& box) override
+	{
+		return Collision::CheckHitSphere_Box(*this, box);
+	}
+
+	inline bool IsCollision(primitive::Sphere& sphere) override
+	{
+		return Collision::CheckHitSphere_Sphere(*this, sphere);
 	}
 	inline PRIMITIVE_TYPE GetType() const override { return PRIMITIVE_TYPE::SPHERE; }
 };
@@ -84,8 +138,13 @@ public:
 	MeshCollider(std::weak_ptr<IMesh> mesh);
 	inline void Update()
 	{
-		invMatWorld = MatrixInverse(gameObject->GetMatrixWorld());
+		invMatWorld = MatrixInverse(pGameObject->GetMatrixWorld());
 	}
+	inline bool Dispatch(BaseCollider& collider) override { return false; }
+	inline bool IsCollision(primitive::Box2D& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere2D& sphere) override { return false; }
+	inline bool IsCollision(primitive::Box& box) override { return false; }
+	inline bool IsCollision(primitive::Sphere& sphere) override { return false; }
 	inline PRIMITIVE_TYPE GetType() const override { return PRIMITIVE_TYPE::MESH; }
 };
 } // namespace gamelib

@@ -10,7 +10,7 @@ private:
 	/// <summary>
 	/// シーンのポインタ
 	/// </summary>
-	std::unique_ptr<BaseScene> scene;
+	std::unique_ptr<BaseScene> u_pScene;
 
 	/// <summary>
 	/// 次のシーン

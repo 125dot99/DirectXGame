@@ -28,13 +28,13 @@ class VertexBuffer
 {
 private:
 	// 頂点データのサイズ
-	UINT vSize;
+	UINT vertexSize;
 	// 頂点データ構造体のサイズ
 	UINT bufferSize;
 	// 頂点バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> com_pResource;
 	// 頂点バッファビュー
-	D3D12_VERTEX_BUFFER_VIEW vBView{};
+	D3D12_VERTEX_BUFFER_VIEW vbView{};
 	// プリミティブ形状
 	MESH_PRIMITIVE primitiveType;
 public:

@@ -9,6 +9,28 @@
 
 namespace gamelib
 {
+struct SpriteAnimation
+{
+	int count;
+	int startIndex;
+	int animaIndex;
+	int endIndex;
+
+	void SetIndex(int stratIndex, int endIndex);
+	void Update(int fixedFrame);
+};
+
+struct FontAnimation
+{
+	float time;
+	int animaIndex;
+	int endIndex;
+
+	void SetIndex(int stratIndex, int endIndex);
+	void Update(float nextAnimaSpeed);
+	bool IsEnd() const;
+};
+
 class SpriteFontAscii
 {
 private:
@@ -34,21 +56,21 @@ class SpriteFont
 {
 private:
 	Vector2 charSize;
-
-	FontAnimation animation;
+	SpriteRenderer* spriteRenderer;
 	std::vector<unsigned short> charIndices;
 	std::vector<Vector2> textPosArray;
+	std::vector<Vector4> textRect;
+	FontAnimation& fontAnimation;
 	std::weak_ptr<Texture> fontTexture;	
-	SpriteRenderer* spriteRenderer;
 public:
-	SpriteFont(SpriteRenderer* pSpriteRenderer, const std::weak_ptr<Texture>& w_p_fontTexture);
+	SpriteFont(SpriteRenderer* pSpriteRenderer, const std::weak_ptr<Texture>& w_pFontTexture, FontAnimation& _fontAnimation);
 
-	void LoadGctFile(const std::string& _gctFile);
+	void LoadGctFile(const std::string& gctFile);
 
 	void NextReadText(int lineCount = 0);
 
 	void Draw(const Vector2& pos, const Vector2& scale);
 
-	bool IsEnd() { return charIndices.size() == 0; }
+	inline bool IsEnd() { return charIndices.size() == 0; }
 };
 } // namespace gamelib

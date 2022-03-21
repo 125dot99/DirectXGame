@@ -17,9 +17,8 @@ private:
 	std::weak_ptr<IMaterial> w_pMaterial;
 	std::weak_ptr<FbxAnimation> w_pFbxAnimation;
 public:
-	MeshRenderer();
-
-	MeshRenderer(GameObject* pGameObject, const std::string& _meshName, const std::string& _materialName, std::weak_ptr<FbxAnimation> w_pFbxAnimation = {});
+	MeshRenderer() = default;
+	MeshRenderer(GameObject* pGameObject, const std::string& meshName, const std::string& materialName, std::weak_ptr<FbxAnimation> w_pFbxAnimation = {});
 	MeshRenderer(GameObject* pGameObject, std::shared_ptr<IMesh> s_pMesh, std::shared_ptr<IMaterial> s_pMaterial, std::weak_ptr<FbxAnimation> w_pFbxAnimation = {});
 
 	void Draw();

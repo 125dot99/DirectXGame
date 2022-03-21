@@ -1,8 +1,8 @@
 #include <GameLibHeader.h>
 #include "dx12/Dx12Renderer.h"
-
 #include "scene/SceneManager.h"
 #include "TitleScene.h"
+#include "CafeScene.h"
 #include "ResourceLoader.h"
 #include <memory>
 
@@ -20,7 +20,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	static const int WINDOW_HEIGHT = 720;
 	//ウィンドウ生成
 	auto app = Application::GetInstance();
-	app->SetWindow(WINDOW_WIDTH, WINDOW_HEIGHT, L"アンビット Ambit", false);
+	app->SetWindow(WINDOW_WIDTH, WINDOW_HEIGHT, L"アンビット Ambit", true);
 	app->Initialize();
 	//DirectX12デバイス生成
 	auto dx12Renderer = std::make_unique<Dx12Renderer>();

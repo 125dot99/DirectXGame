@@ -36,7 +36,7 @@ private:
 	static LevelData::ObjectData ReadSceneObject(std::ifstream& inFile);
 
 public:
-	static LevelData* LoadFile(const std::string& fileName);
+	static LevelData LoadFile(const std::string& fileName);
 
 };
 } // namespace gamelib

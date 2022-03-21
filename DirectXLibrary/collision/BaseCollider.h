@@ -1,4 +1,6 @@
 #pragma once
+#include "CollisionPrimitive.h"
+
 namespace gamelib
 {
 enum class PRIMITIVE_TYPE
@@ -7,9 +9,7 @@ enum class PRIMITIVE_TYPE
 	SPHERE2D,
 	BOX,
 	SPHERE,
-	RAY,
 	CAPSULE,
-	TRAIANGLE,
 	MESH,
 };
 
@@ -21,20 +21,26 @@ private:
 	unsigned short attribute;
 
 protected:
-	class GameObject* gameObject;
+	class GameObject* pGameObject;
 
 	/// <summary>
 	/// コライダーの型変換
 	/// </summary>
-	//virtual operator struct PrimitiveType* () const = 0;
 public:
-	BaseCollider() : gameObject(nullptr), attribute(0), isCheck(true) {}
+	BaseCollider() : pGameObject(nullptr), attribute(0), isCheck(true) {}
 	virtual ~BaseCollider() = default;
 
 	/// <summary>
 	/// コライダーの更新
 	/// </summary>
 	virtual void Update() = 0;
+
+	virtual bool Dispatch(BaseCollider& collider) = 0;
+	
+	virtual bool IsCollision(primitive::Box2D& box) = 0;
+	virtual bool IsCollision(primitive::Sphere2D& sphere) = 0;
+	virtual bool IsCollision(primitive::Box& box) = 0;
+	virtual bool IsCollision(primitive::Sphere& sphere) = 0;
 
 	/// <summary>
 	/// コライダーの判別

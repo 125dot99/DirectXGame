@@ -6,15 +6,16 @@
 #include <unordered_map>
 
 #include "ResourceManager.h"
+#include "../dx12/Material.h"
 
 const std::string OBJ_PATH = "Resources/Model/Obj/";
 
 gamelib::Mesh* gamelib::ObjLoader::LoadModelFromFile(const std::string& modelName)
 {
-	std::ifstream inFile;
 	const std::string directoryPath = OBJ_PATH + modelName + "/";
 	const std::string fileName = modelName + ".obj";
 	const std::string fullpath = directoryPath + fileName;
+	std::ifstream inFile;
 	inFile.open(fullpath);
 	
 	//ファイルチェック
@@ -36,8 +37,8 @@ gamelib::Mesh* gamelib::ObjLoader::LoadModelFromFile(const std::string& modelNam
 	unsigned short index = 0;
 	
 	//頂点データ格納用
-	std::vector<VertexNormalUv>& vertices = model->vertexBuffer->vertices;
-	std::vector<unsigned short>& indices = model->indexBuffer->indices;
+	std::vector<VertexNormalUv>& vertices = model->u_pVertexBuffer->vertices;
+	std::vector<unsigned short>& indices = model->u_pIndexBuffer->indices;
 	std::unordered_map<unsigned short, std::vector<unsigned short>> smoothData;
 	while (std::getline(inFile, line))
 	{
@@ -150,16 +151,14 @@ gamelib::Mesh* gamelib::ObjLoader::LoadModelFromFile(const std::string& modelNam
 
 void gamelib::ObjLoader::LoadMaterialFile(Mesh* pModel, const std::string& fileName)
 {
-	std::ifstream inFile;
 	//ファイルオープン
-	inFile.open(fileName);
+	std::ifstream inFile(fileName);
 	//ファイルチェック
-	assert(!inFile.fail() && "mtlファイルが見つかりません");
+	assert(inFile.is_open() && "mtlファイルが見つかりません");
 	//マテリアルのパス
 	const std::string mtlPath = OBJ_PATH + pModel->name + "/";
 	//参照
-	pModel->material = std::make_unique<Material>();
-	auto& material = *pModel->material;
+	PhongMaterial* material = new PhongMaterial;
 	std::string line;
 	auto resourceManager = ResourceManager::GetInstance();
 	while (std::getline(inFile, line))
@@ -173,51 +172,53 @@ void gamelib::ObjLoader::LoadMaterialFile(Mesh* pModel, const std::string& fileN
 		}
 		else if (key == "newmtl")
 		{
-			line_stream >> material.name;
+			line_stream >> material->name;
 		}
 		else if (key == "Ka")//アンビエントカラー
 		{
-			line_stream >> material.ambient.x;
-			line_stream >> material.ambient.y;
-			line_stream >> material.ambient.z;
+			line_stream >> material->ambient.x;
+			line_stream >> material->ambient.y;
+			line_stream >> material->ambient.z;
 		}
 		else if (key == "Kd")//ディフューズカラー
 		{
-			line_stream >> material.diffuse.x;
-			line_stream >> material.diffuse.y;
-			line_stream >> material.diffuse.z;
+			line_stream >> material->diffuse.x;
+			line_stream >> material->diffuse.y;
+			line_stream >> material->diffuse.z;
 		}
 		else if (key == "Ks")//スペキュラーカラー
 		{
-			line_stream >> material.specular.x;
-			line_stream >> material.specular.y;
-			line_stream >> material.specular.z;
+			line_stream >> material->specular.x;
+			line_stream >> material->specular.y;
+			line_stream >> material->specular.z;
 		}
 		else if (key == "d")//アルファ値
 		{
-			line_stream >> material.alpha;
+			line_stream >> material->alpha;
 		}
 		else if (key == "map_Kd")//メインテクスチャ
 		{
 			std::string kd;
 			line_stream >> kd;
 			resourceManager->LoadTextureFromFile(mtlPath + kd);
-			material.vec_w_p_textures.emplace_back(resourceManager->GetTexture(kd));
+			material->w_pTexture = (resourceManager->GetTexture(kd));
 		}
-		else if (key == "map_Bump")//ノーマルマップ
-		{
-			std::string bump;
-			line_stream >> bump;
-			resourceManager->LoadTextureFromFile(mtlPath + bump);
-			material.vec_w_p_textures.emplace_back(resourceManager->GetTexture(bump));
-		}
+		//else if (key == "map_Bump")//ノーマルマップ
+		//{
+		//	std::string bump;
+		//	line_stream >> bump;
+		//	resourceManager->LoadTextureFromFile(mtlPath + bump);
+		//	material->vec_w_pTextures.emplace_back(resourceManager->GetTexture(bump));
+		//}
 	}
 	inFile.close();
-	if (material.vec_w_p_textures.size() == 0)
+	material->name = pModel->name;
+	if (!material->w_pTexture.lock())
 	{
 		//1x1の白いテクスチャを適応
-		material.vec_w_p_textures.emplace_back(resourceManager->GetDefalutTexture());
+		material->w_pTexture = resourceManager->GetDefalutTexture();
 	}
+	resourceManager->GetInstance()->AddMaterial(material, material->name);
 }
 
 gamelib::Mesh* gamelib::ObjLoader::ReadObjModel(const std::string& modelName)

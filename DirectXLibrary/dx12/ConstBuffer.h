@@ -16,17 +16,14 @@ private:
 	//構造体のサイズ
 	UINT dataSize;
 	//定数バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> com_pResource;
 public:
-	ConstBuffer() : rootParamIndex(0), dataSize(0) 
-	{
-
-	}
+	ConstBuffer() : rootParamIndex(0), dataSize(0) {}
 
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Init(UINT rootParamIndex, size_t cbufferDataSize)
+	void Init(UINT rootParamIndex, size_t u_pConstBufferDataSize)
 	{
 		this->rootParamIndex = rootParamIndex;
 
@@ -35,7 +32,7 @@ public:
 		cbheapprop.Type = D3D12_HEAP_TYPE_UPLOAD;//GPUへの転送用
 
 		//リソース設定
-		dataSize = static_cast<UINT>(cbufferDataSize);
+		dataSize = static_cast<UINT>(u_pConstBufferDataSize);
 		D3D12_RESOURCE_DESC cbresdesc{};
 		cbresdesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 		cbresdesc.Width = (dataSize + 0xff) & ~0xff;//256バイトアライメント
@@ -52,20 +49,20 @@ public:
 			&cbresdesc,//リソース設定
 			D3D12_RESOURCE_STATE_GENERIC_READ,
 			nullptr,
-			IID_PPV_ARGS(&resource));
+			IID_PPV_ARGS(&com_pResource));
 		assert(SUCCEEDED(result) && "定数バッファの生成失敗");
 	}
 
 	/// <summary>
 	/// GPUに定数バッファを転送
 	/// </summary>
-	inline void Map(void* cbuffer)
+	inline void Map(void* pConstBuffer)
 	{
 		void* constMap = nullptr;
-		HRESULT result = resource->Map(0, nullptr, (void**)&constMap);
+		HRESULT result = com_pResource->Map(0, nullptr, (void**)&constMap);
 		assert(SUCCEEDED(result) && "定数バッファの転送失敗");
-		memcpy(constMap, cbuffer, dataSize);
-		resource->Unmap(0, nullptr);
+		memcpy(constMap, pConstBuffer, dataSize);
+		com_pResource->Unmap(0, nullptr);
 	}
 
 	/// <summary>
@@ -74,7 +71,7 @@ public:
 	inline void GraphicsCommand() const
 	{
 		static auto* cmdList = Dx12Renderer::GetCommandList();
-		cmdList->SetGraphicsRootConstantBufferView(rootParamIndex, resource->GetGPUVirtualAddress());
+		cmdList->SetGraphicsRootConstantBufferView(rootParamIndex, com_pResource->GetGPUVirtualAddress());
 	}
 
 	/// <summary>
@@ -83,7 +80,7 @@ public:
 	inline void ComputeCommand() const
 	{
 		static auto* cmdList = Dx12Renderer::GetCommandList();
-		cmdList->SetComputeRootConstantBufferView(rootParamIndex, resource->GetGPUVirtualAddress());
+		cmdList->SetComputeRootConstantBufferView(rootParamIndex, com_pResource->GetGPUVirtualAddress());
 	}
 };
 } // namespace gamelib

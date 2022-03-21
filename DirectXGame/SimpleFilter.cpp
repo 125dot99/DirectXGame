@@ -65,3 +65,8 @@ void SimpleFilter::Draw()
 	filter->Befoer();
 	filter->After();
 }
+
+int SimpleFilter::GetFilterIndex() const
+{
+	return (int)filterState;
+}

@@ -22,11 +22,11 @@ void gamelib::GaussianBlur::Map()
 	cBuffer->Map(&constMap);
 }
 
-void gamelib::GaussianBlur::Init(float s)
+void gamelib::GaussianBlur::Init(float sigma)
 {
 	cBuffer.reset(new ConstBuffer);
 	cBuffer->Init(0, sizeof(ConstBufferData));
-	sigma = s;
+	this->sigma = sigma;
 	Map();
 }
 

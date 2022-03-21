@@ -1,5 +1,7 @@
 #include "MiniGameState.h"
 
+#include "InputControl.h"
+
 #include "MiniScreenData.h"
 #include "MiniPlayer.h"
 #include "MiniEnemy.h"
@@ -56,7 +58,7 @@ void MiniTitle::Draw()
 	spriteFontAscii->Draw(EnemyManager::ENEMY_SCORE_A, pos - unit + Vector2(-15, 20), Vector2(1.4f), color);
 	spriteFontAscii->Draw(EnemyManager::ENEMY_SCORE_B, pos + Vector2(-15, 20), Vector2(1.4f), color);
 	spriteFontAscii->Draw(EnemyManager::ENEMY_SCORE_C, pos + unit + Vector2(-15, 20), Vector2(1.4f), color);
-	spriteFontAscii->Draw("START", Vector2(mini_screen::CENTER.x + 40.0f, mini_screen::CENTER.y + 20), Vector2(2), color);
+	spriteFontAscii->Draw("START B", Vector2(mini_screen::CENTER.x + 40.0f, mini_screen::CENTER.y + 20), Vector2(2), color);
 	spriteFontAscii->Draw("@ ??? 2022", Vector2(mini_screen::CENTER.x, mini_screen::MAX_WALL.y + 20), Vector2(2), color);
 }
 
@@ -67,9 +69,7 @@ bool MiniTitle::IsState(const char* typeName) const
 
 bool MiniTitle::IsNext() const
 {
-	return (Input::GetKeyborad()->IsKeyDown(KEY_CODE::SPACE) ||
-		Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::B)) && 
-		animaFrame == 1.0f;
+	return input_control::MainAction() && animaFrame == 1.0f;
 }
 
 MiniPlay::MiniPlay(MiniGameScene* _owner) : owner(_owner)
@@ -86,39 +86,39 @@ MiniPlay::MiniPlay(MiniGameScene* _owner) : owner(_owner)
 	Vector2 startPos(mini_screen::MIN_WALL.x + 100.0f, mini_screen::MAX_WALL.y - 60);
 	for (int i = 0; i < 4; i++)
 	{
-		walls[(UINT64)i * 3 + 0]->SetPosition(startPos + Vector2());
+		walls[(UINT64)i * 3 + 0]->SetPosition(startPos + Vector2::Zero());
 		walls[(UINT64)i * 3 + 1]->SetPosition(startPos + Vector2(20, 0));
 		walls[(UINT64)i * 3 + 2]->SetPosition(startPos + Vector2(40, 0));
 		startPos.x += 105;
 	}
 	enemyManager = Factory::CreateUnique<EnemyManager>(owner->enemyHp);
 	objectManager = Factory::CreateUnique<ObjectManager>();
-	objectManager->Add(player);
-	objectManager->Add(playerBullet);
+	objectManager->Add("player", player);
+	objectManager->Add("playerBullet", playerBullet);
 
 	Vector2 size(15, 15);
 	collisionManager = Factory::CreateUnique<CollisionManager>();
-	collisionManager->AddCollider(player, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), size), 0b01);
-	collisionManager->AddCollider(playerBullet, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(1.0f, size.y / 2)), 0b110);
+	collisionManager->Add(player, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), size), 0b01);
+	collisionManager->Add(playerBullet, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(1.0f, size.y / 2)), 0b110);
 	
 	for (auto&& wall : walls)
 	{
-		objectManager->Add(wall);
-		collisionManager->AddCollider(wall, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(10)), 0b110);
+		objectManager->Add("wall", wall);
+		collisionManager->Add(wall, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(10)), 0b110);
 	}
 	//マネージャーに渡す
 	for (auto&& enemys : enemyManager->GetEnemys())
 	{
 		for (auto&& enemy : enemys)
 		{
-			objectManager->Add(enemy);
-			collisionManager->AddCollider(enemy, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), size), 0b010);
+			objectManager->Add("enemy", enemy);
+			collisionManager->Add(enemy, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), size), 0b010);
 		}
 	}
 	for (auto&& eBullet : enemyManager->GetEnemyBullets())
 	{
-		objectManager->Add(eBullet);
-		collisionManager->AddCollider(eBullet, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(2.0f, size.y / 2)), 0b1101);
+		objectManager->Add("enemyBullet", eBullet);
+		collisionManager->Add(eBullet, Factory::CreateShared<Box2DCollider>(Vector2::Zero(), Vector2(2.0f, size.y / 2)), 0b1101);
 	}
 	objectManager->Initialize();
 }
@@ -210,8 +210,7 @@ bool MiniGameClear::IsState(const char* typeName) const
 
 bool MiniGameClear::IsNext() const
 {
-	return Input::GetKeyborad()->IsKeyDown(KEY_CODE::SPACE) ||
-		Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::B);
+	return input_control::MainAction();
 }
 
 MiniGameOver::MiniGameOver(MiniGameScene* _owner) : owner(_owner)
@@ -237,6 +236,5 @@ bool MiniGameOver::IsState(const char* typeName) const
 
 bool MiniGameOver::IsNext() const
 {
-	return Input::GetKeyborad()->IsKeyDown(KEY_CODE::SPACE) ||
-		Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::B);
+	return input_control::MainAction();
 }

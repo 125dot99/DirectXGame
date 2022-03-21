@@ -17,13 +17,13 @@ private:
 	//出力データサイズ
 	UINT dataSize;
 	//バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> com_pResource;
 	//UAVデスクリプタヒープ
-	std::weak_ptr<DescriptorHeap> descriptorHeapUAV;
+	std::weak_ptr<DescriptorHeap> w_pDescriptorHeapUAV;
+
 	void Map();
 public:
 	RWStructuredBuffer();
-	~RWStructuredBuffer();
 
 	/// <summary>
 	/// UAVを生成
@@ -31,7 +31,7 @@ public:
 	/// <param name="_size"></param>
 	/// <param name="pDescHeap"></param>
 	/// <param name="index"></param>
-	void CreateUAV(const size_t& _size, std::weak_ptr<DescriptorHeap> pDescHeap, UINT index);
+	void CreateUAV(const size_t& _size, std::weak_ptr<DescriptorHeap> w_pDescriptorHeapUAV, UINT index);
 
 	/// <summary>
 	/// アンオーダードアクセスビューのコマンド送信

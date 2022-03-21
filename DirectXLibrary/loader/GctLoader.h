@@ -4,7 +4,6 @@
 
 namespace gamelib
 { 
-
 //Šg’£Žq.gct
 struct GctData
 {

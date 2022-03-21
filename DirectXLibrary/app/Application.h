@@ -36,6 +36,8 @@ public:
 	void Initialize();
 	//アプリケーションのループ
 	int Run();
+	//アプリケーションの終了
+	void ShutDown();
 	//ウィンドウ横幅
 	inline const Vector2& GetWindowSize() const { return windowSize; }
 	//ウィンドウハンドル

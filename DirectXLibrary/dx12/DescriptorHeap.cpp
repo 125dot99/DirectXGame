@@ -2,8 +2,6 @@
 
 #include <assert.h>
 
-#include "Dx12Renderer.h"
-
 void gamelib::DescriptorHeap::Create(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT size)
 {
 	D3D12_DESCRIPTOR_HEAP_FLAGS flag = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
@@ -18,10 +16,8 @@ void gamelib::DescriptorHeap::Create(D3D12_DESCRIPTOR_HEAP_TYPE type, UINT size)
 	descHeapDesc.NodeMask = 0;
 	HRESULT result = Dx12Renderer::GetDevice()->CreateDescriptorHeap(
 		&descHeapDesc,
-		IID_PPV_ARGS(&descHeap));
+		IID_PPV_ARGS(&com_pDescriptorHeap));
 	assert(SUCCEEDED(result) && "デスクリプタヒープ生成失敗");
 	//サイズをキャッシュする
 	handleIncrementSize = Dx12Renderer::GetDevice()->GetDescriptorHandleIncrementSize(type);
 }
-
-

@@ -2,7 +2,6 @@
 #include "../math/MyMath.h"
 #include "../math/Matrix4.h"
 #include "../dx12/ConstBuffer.h"
-#include "../dx12/IMesh.h"
 #include "../collision/BaseCollider.h"
 
 namespace gamelib
@@ -11,18 +10,16 @@ class GameObject
 {
 private:
 	Matrix4 matWorld;
-	GameObject* parent;
 
-	std::weak_ptr<IMesh> mesh;
-	std::weak_ptr<BaseCollider> collider;
-
-	std::unique_ptr<ConstBuffer> cbuffer;
+	std::weak_ptr<BaseCollider> w_pCollider;
+	std::unique_ptr<ConstBuffer> u_pConstBuffer;
 
 protected:
 	bool isActive;
 	Vector3 position;
 	Vector3 rotation;
 	Vector3 scale;
+	GameObject* pParentObject;
 
 	inline void UpdateWorldMatrix()
 	{
@@ -31,25 +28,26 @@ protected:
 		matWorld *= MatrixRotateX(ConvertToRadian(rotation.x));
 		matWorld *=	MatrixRotateY(ConvertToRadian(rotation.y));
 		matWorld *= MatrixTranslate(position);
-		if (parent)//親オブジェクトのワールド行列と合成
+		if (pParentObject)//親オブジェクトのワールド行列と合成
 		{
-			matWorld *= parent->matWorld;
+			matWorld *= pParentObject->matWorld;
 		}
+		u_pConstBuffer->Map(&matWorld);
 	}
 
 	inline void UpdateCollider()
 	{
-		if (collider.lock())
+		if (w_pCollider.lock())
 		{
-			collider.lock()->Update();
+			w_pCollider.lock()->Update();
 		}
 	}
 
 public:
-	inline GameObject() : isActive(true), scale(Vector3::One()), parent(nullptr) 
+	inline GameObject() : isActive(true), scale(Vector3::One()), pParentObject(nullptr) 
 	{
-		cbuffer = std::make_unique<ConstBuffer>();
-		cbuffer->Init(0, sizeof(Matrix4));
+		u_pConstBuffer = std::make_unique<ConstBuffer>();
+		u_pConstBuffer->Init(0, sizeof(Matrix4));
 	}
 	
 	inline GameObject(
@@ -61,7 +59,7 @@ public:
 		position = _position;
 		rotation = _rotation;
 		scale = _scale;
-		parent = pParent;
+		pParentObject = pParent;
 	}
 
 	virtual ~GameObject() = default;
@@ -80,9 +78,7 @@ public:
 
 	virtual inline void OnCollision(BaseCollider* collA, BaseCollider* collB) {}
 	
-	inline void TransferBuffer() { cbuffer->Map(&matWorld); }
-
-	inline void GraphicsCommand() const { cbuffer->GraphicsCommand(); }
+	inline void GraphicsCommand() const { u_pConstBuffer->GraphicsCommand(); }
 
 	// setter
 	inline void SetPosition(const Vector3& _position) { position = _position; }
@@ -90,7 +86,6 @@ public:
 	inline void SetScale(const Vector3& _scale) { scale = _scale; }
 	
 	void SetActive(bool _isActive);
-	void SetMeshFile(const char* meshFile);
 	void SetParent(GameObject* pGameObject);
 	void SetCollider(std::weak_ptr<BaseCollider> pCollider);
 

@@ -1,16 +1,17 @@
 #include "MiniGameScene.h"
 
-#include "CafeScene.h"
 #include "MiniScreenData.h"
+#include "MiniGameState.h"
 
 #include "InvaderFilter.h"
-#include "MiniGameState.h"
+#include "CafeScene.h"
 #include "SceneFade.h"
-
 #include "Score.h"
+#include "InputControl.h"
 #include "loader/UtilityString.h"
 
 static int hiScore;
+const std::string scoreTextFile = "Resources/Score/score.txt";
 
 enum RESORCE_TEXTURE
 {
@@ -60,7 +61,7 @@ void MiniGameScene::Initialize()
 
 	spriteFontAscii = Factory::CreateUnique<SpriteFontAscii>(spriteRenderer.get(), textures[TEX_ASCII_FONT]);
 	
-	strHiScore = utility_string::LoadTextFile("Resources/Score/score.sts");
+	strHiScore = utility_string::LoadTextFile(scoreTextFile);
 	if (strHiScore.size() == 0)
 	{
 		strHiScore = "00000";
@@ -115,8 +116,7 @@ void MiniGameScene::Update()
 			nextSceneState = true;
 		}
 	}
-	if (Input::GetKeyborad()->IsKeyDown(KEY_CODE::Z) || 
-		Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::A))
+	if (input_control::CancelAction())
 	{
 		childScene = Factory::CreateUnique<SceneFadeIn>(spriteRenderer.get());
 	}
@@ -165,7 +165,7 @@ void MiniGameScene::Finalize()
 		std::string str = std::to_string(Score::GetScore());
 		scoreStr.erase(0, str.size());
 		scoreStr.insert(5 - str.size(), str);
-		utility_string::SaveText("Resources/Score/score.sts", scoreStr);
+		utility_string::SaveText(scoreTextFile, scoreStr);
 	}
 	textures.clear();
 }

@@ -7,15 +7,16 @@
 #include <assert.h>
 
 #include "ResourceManager.h"
+#include "../dx12/Material.h"
 #include "../math/Matrix4.h"
 #include "UtilityString.h"
 
 using namespace fbxsdk;
 //FBXのファイルパス
 const std::string FBX_PATH = "Resources/Model/Fbx/";
-static FbxManager* fbxManager;
-static FbxImporter* fbxImporter;
-static std::unordered_map<std::string, FbxScene*> fbxScenes{};
+static FbxManager* pFbxManager;
+static FbxImporter* pFbxImporter;
+static std::unordered_map<std::string, FbxScene*> u_mapFbxScenes{};
 
 //ボーン番号とスキンウェイトのペア
 struct WeightSet
@@ -27,33 +28,33 @@ struct WeightSet
 gamelib::SkinMesh* gamelib::FbxLoader::LoadModelFromFile(const std::string& modelName)
 {
     //シーン生成
-    FbxScene* fbxScene = FbxScene::Create(fbxManager, "fbxScene");
+    FbxScene* pFbxScene = FbxScene::Create(pFbxManager, "pFbxScene");
     //ファイルからロードしたFBXの情報をシーンにインポート
-    fbxImporter->Import(fbxScene);
+    pFbxImporter->Import(pFbxScene);
     //メッシュを三角面化
-    FbxGeometryConverter geometryConverter(fbxManager);
-    geometryConverter.SplitMeshesPerMaterial(fbxScene, true);
-    geometryConverter.Triangulate(fbxScene, true);
+    FbxGeometryConverter geometryConverter(pFbxManager);
+    geometryConverter.SplitMeshesPerMaterial(pFbxScene, true);
+    geometryConverter.Triangulate(pFbxScene, true);
     //モデル生成
     SkinMesh* model = new SkinMesh;
     model->name = modelName;
     //FBXノードの数を取得
-    int nodeCount = fbxScene->GetNodeCount();
+    int nodeCount = pFbxScene->GetNodeCount();
     //あらかじめ必要数分のメモリを確保してモデルに流し込む
-    model->nodes.reserve(nodeCount);
+    model->vecFbxMeshNodes.reserve(nodeCount);
     //ルートノードから順に解析してモデルに流し込む
-    ParseNodeRecursive(model, fbxScene->GetRootNode());
+    ParseNodeRecursive(model, pFbxScene->GetRootNode());
     //FBXシーン解放
-    model->fbxScene = fbxScene;
-    fbxScenes[modelName] = model->fbxScene;
+    model->pFbxScene = pFbxScene;
+    u_mapFbxScenes[modelName] = model->pFbxScene;
     return model;
 }
 
-void gamelib::FbxLoader::ParseNodeRecursive(SkinMesh* model, fbxsdk::FbxNode* fbxNode, FbxMeshNode* parent)
+void gamelib::FbxLoader::ParseNodeRecursive(SkinMesh* model, fbxsdk::FbxNode* fbxNode, FbxMeshNode* pParentNode)
 {
     //モデルにノード追加
-    model->nodes.emplace_back();
-    FbxMeshNode& node = model->nodes.back();
+    model->vecFbxMeshNodes.emplace_back();
+    FbxMeshNode& node = model->vecFbxMeshNodes.back();
     //ノード名を取得
     node.name = fbxNode->GetName();
     //変形変換して代入
@@ -72,11 +73,11 @@ void gamelib::FbxLoader::ParseNodeRecursive(SkinMesh* model, fbxsdk::FbxNode* fb
     node.transform *= MatrixTranslate(Vector3((float)translation[0], (float)translation[1], (float)translation[2]));
     //グローバル変形行列の計算
     node.globalTransform = node.transform;
-    if (parent)
+    if (pParentNode)
     {
-        node.parent = parent;
+        node.pParentNode = pParentNode;
         //親の変形を乗算
-        node.globalTransform *= parent->globalTransform;
+        node.globalTransform *= pParentNode->globalTransform;
     }
     //FBXノードのメッシュ情報を解析
     FbxNodeAttribute* fbxNodeAttribute = fbxNode->GetNodeAttribute();
@@ -111,7 +112,7 @@ void gamelib::FbxLoader::ParseMesh(SkinMesh* model, fbxsdk::FbxNode* fbxNode)
 
 void gamelib::FbxLoader::ParseMeshPoints(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
 {
-    std::vector<VertexNormalUvBones>& vertices = model->vertexBuffer->vertices;
+    std::vector<VertexNormalUvBones>& vertices = model->u_pVertexBuffer->vertices;
     //頂点座標データの数
     const int controlPointsCount = fbxMesh->GetControlPointsCount();
     //必要数だけ頂点データ配列を確保
@@ -128,7 +129,7 @@ void gamelib::FbxLoader::ParseMeshPoints(SkinMesh* model, fbxsdk::FbxMesh* fbxMe
 
 void gamelib::FbxLoader::ParseMeshIndices(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
 {
-    std::vector<unsigned short>& indices = model->indexBuffer->indices;
+    std::vector<unsigned short>& indices = model->u_pIndexBuffer->indices;
     //1ファイルに複数メッシュのモデルは非対応
     assert(indices.size() == 0);
     //面の数
@@ -181,8 +182,8 @@ void gamelib::FbxLoader::RemakeMeshVertices(SkinMesh* model, fbxsdk::FbxMesh* fb
     std::vector<Vector2> uvs;
     ParseMeshUVs(uvs, fbxMesh);
    
-    auto& vertices = model->vertexBuffer->vertices;
-    auto& indices = model->indexBuffer->indices;
+    auto& vertices = model->u_pVertexBuffer->vertices;
+    auto& indices = model->u_pIndexBuffer->indices;
     const int indexSize = (int)indices.size();
     std::vector<VertexNormalUvBones> remake(indexSize);
     for (int i = 0; i < indexSize; i++)
@@ -197,9 +198,8 @@ void gamelib::FbxLoader::RemakeMeshVertices(SkinMesh* model, fbxsdk::FbxMesh* fb
 
 void gamelib::FbxLoader::ParseMaterial(SkinMesh* model, fbxsdk::FbxNode* fbxNode)
 {
-    auto& material = model->material;
+    PhongMaterial* material = new PhongMaterial;
     const int materialCount = fbxNode->GetMaterialCount();
-    material = std::make_unique<Material>();
     if (materialCount == 0)
     {
         return;
@@ -213,7 +213,8 @@ void gamelib::FbxLoader::ParseMaterial(SkinMesh* model, fbxsdk::FbxNode* fbxNode
         return;
     }
     //マテリアル名を取得
-    material->name = fbxMaterial->GetName();
+    //material->name = fbxMaterial->GetName();
+    material->name = model->name;
     auto resourceManager = ResourceManager::GetInstance();
     if (fbxMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId))//ランバート
     {
@@ -237,7 +238,7 @@ void gamelib::FbxLoader::ParseMaterial(SkinMesh* model, fbxsdk::FbxNode* fbxNode
                 //ディレクトリを含んだファイルパスからファイル名を抽出する
                 std::string name = utility_string::ExtractFileName(path_str);
                 resourceManager->LoadTextureFromFile(FBX_PATH + model->name + "/" + name);
-                material->vec_w_p_textures.emplace_back(resourceManager->GetTexture(utility_string::ExtractFileName(name)));
+                material->w_pTexture = resourceManager->GetTexture(utility_string::ExtractFileName(name));
             }
         }
     } else
@@ -266,36 +267,37 @@ void gamelib::FbxLoader::ParseMaterial(SkinMesh* model, fbxsdk::FbxNode* fbxNode
                 //ディレクトリを含んだファイルパスからファイル名を抽出する
                 std::string name = utility_string::ExtractFileName(path_str);
                 resourceManager->LoadTextureFromFile(FBX_PATH + model->name + "/" + name);
-                material->vec_w_p_textures.emplace_back(resourceManager->GetTexture(utility_string::ExtractFileName(name)));
+                material->w_pTexture = resourceManager->GetTexture(utility_string::ExtractFileName(name));
             }
         }
     }
-    if (material->vec_w_p_textures.size() == 0)
+    if (!material->w_pTexture.lock())
     {           
         //1x1の白いテクスチャを適応
-        material->vec_w_p_textures.emplace_back(resourceManager->GetDefalutTexture());
+        material->w_pTexture = resourceManager->GetDefalutTexture();
     }
+    resourceManager->AddMaterial(material, material->name);
 }
 
 void gamelib::FbxLoader::ParseSkin(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
 {
     //スキニング情報
     FbxSkin* fbxSkin = static_cast<FbxSkin*>(fbxMesh->GetDeformer(0, FbxDeformer::eSkin));
-    const int verticesSize = (int)model->vertexBuffer->vertices.size();
+    const int verticesSize = (int)model->u_pVertexBuffer->vertices.size();
     if (fbxSkin == nullptr)
     {
         for (int i = 0; i < verticesSize; i++)
         {
-            model->vertexBuffer->vertices[i].boneIndex[0] = 0;
-            model->vertexBuffer->vertices[i].boneWeight[0] = 1.0f;
+            model->u_pVertexBuffer->vertices[i].boneIndex[0] = 0;
+            model->u_pVertexBuffer->vertices[i].boneWeight[0] = 1.0f;
         }
         return;
     }
     //ボーン配列の参照
-    std::vector<FbxBone>& bones = model->bones;
+    std::vector<FbxBone>& vecFbxBones = model->vecFbxBones;
     //ボーンの数
     int clusterCount = fbxSkin->GetClusterCount();
-    bones.reserve(clusterCount);
+    vecFbxBones.reserve(clusterCount);
     //全てのボーンについて
     for (int i = 0; i < clusterCount; i++)
     {
@@ -304,8 +306,8 @@ void gamelib::FbxLoader::ParseSkin(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
         //ボーン自体のノードの名前を取得
         const char* boneName = fbxCluster->GetLink()->GetName();
         //新しくボーンを追加
-        bones.emplace_back(FbxBone(boneName));
-        FbxBone& bone = bones.back();
+        vecFbxBones.emplace_back(FbxBone(boneName));
+        FbxBone& bone = vecFbxBones.back();
         //自作ボーンとFBXボーンを紐づける
         bone.fbxCluster = fbxCluster;
         //FBXから初期姿勢行列を取得する
@@ -345,7 +347,7 @@ void gamelib::FbxLoader::ParseSkin(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
         }
     }
     //頂点配列書き換え用
-    auto& vertices = model->vertexBuffer->vertices;
+    auto& vertices = model->u_pVertexBuffer->vertices;
     //各頂点について
     for (int i = 0; i < verticesSize; i++)
     {
@@ -383,20 +385,20 @@ void gamelib::FbxLoader::ParseSkin(SkinMesh* model, fbxsdk::FbxMesh* fbxMesh)
 
 void gamelib::FbxLoader::Initialize()
 {
-    assert(fbxManager == nullptr);
+    assert(pFbxManager == nullptr);
     //FBXマネージャーの生成
-    fbxManager = FbxManager::Create();
+    pFbxManager = FbxManager::Create();
     //FBXマネージャーの入出力設定
-    FbxIOSettings* ios = FbxIOSettings::Create(fbxManager, IOSROOT);
-    fbxManager->SetIOSettings(ios);
+    FbxIOSettings* ios = FbxIOSettings::Create(pFbxManager, IOSROOT);
+    pFbxManager->SetIOSettings(ios);
     //FBXインポーターの設定
-    fbxImporter = FbxImporter::Create(fbxManager, "");
+    pFbxImporter = FbxImporter::Create(pFbxManager, "");
 }
 
 void gamelib::FbxLoader::Finalize()
 {
-    fbxImporter->Destroy();
-    fbxManager->Destroy();
+    pFbxImporter->Destroy();
+    pFbxManager->Destroy();
 }
 
 gamelib::SkinMesh* gamelib::FbxLoader::ReadFbxModel(const std::string& modelName)
@@ -406,7 +408,7 @@ gamelib::SkinMesh* gamelib::FbxLoader::ReadFbxModel(const std::string& modelName
     const std::string fileName = modelName + ".fbx";
     const std::string fullpath = directoryPath + fileName;
     //ファイル名を指定してFBXファイルを読み込む
-    if (!fbxImporter->Initialize(fullpath.c_str(), -1, fbxManager->GetIOSettings()))
+    if (!pFbxImporter->Initialize(fullpath.c_str(), -1, pFbxManager->GetIOSettings()))
     {
         assert(!"FBXファイルの読み込みに失敗しました");
         return nullptr;
@@ -414,11 +416,3 @@ gamelib::SkinMesh* gamelib::FbxLoader::ReadFbxModel(const std::string& modelName
     return LoadModelFromFile(modelName);
 }
 
-void* gamelib::FbxLoader::ReadFbxScene(const std::string& modelName)
-{
-    if (fbxScenes.find(modelName) != fbxScenes.end())
-    {
-        return fbxScenes[modelName];
-    }
-    return nullptr;
-}

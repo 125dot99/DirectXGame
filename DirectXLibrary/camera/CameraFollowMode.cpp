@@ -49,5 +49,5 @@ void gamelib::CameraFollowMode::Update()
 	Quaternion q2 = AngleAxis(right, rot.y * R_SPEED);
 	Quaternion q = Quaternion(offset, q1 * q2);
 	owner->eye = owner->target + q.Euler();
-	owner->eye.y = Min(1.0f, Max(distance, owner->eye.y));
+	owner->eye.y = Clamp(owner->eye.y, 1.0f, distance);
 }

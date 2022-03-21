@@ -1,8 +1,7 @@
 #include "WorldShipState.h"
 
 #include "camera/SceneCameraProvide.h"
-#include "input/Input.h"
-#include "imgui/imgui.h"
+#include "InputControl.h"
 
 WorldShipWait::WorldShipWait(WorldShip* _owner) : owner(_owner)
 {
@@ -22,28 +21,7 @@ WorldShipMove::WorldShipMove(WorldShip* _owner) : owner(_owner)
 
 void WorldShipMove::Update()
 {
-	auto& leftThomb = Input::GetGamepad()->GetLeftThumb();
-	Vector2 v;
-	if (Input::GetKeyborad()->IsKey(KEY_CODE::D) ||
-		leftThomb.x > 0)
-	{
-		v.x += 1;
-	}
-	if (Input::GetKeyborad()->IsKey(KEY_CODE::A) ||
-		leftThomb.x < 0)
-	{
-		v.x -= 1;
-	}
-	if (Input::GetKeyborad()->IsKey(KEY_CODE::W) ||
-		leftThomb.y > 0)
-	{
-		v.y += 1;
-	}
-	if (Input::GetKeyborad()->IsKey(KEY_CODE::S) ||
-		leftThomb.y < 0)
-	{
-		v.y -= 1;
-	}
+	const Vector2 v = input_control::LeftStickValue();
 	//ZŽ²
 	Vector3 forward = SceneCameraProvide::GetCamera()->GetDirection();
 	//XŽ²

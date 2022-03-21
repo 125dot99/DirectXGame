@@ -18,7 +18,7 @@ template class VertexBuffer<VertexPosColorScaleAngle>;
 } // namespace gamelib
 
 template<class Vertex>
-gamelib::VertexBuffer<Vertex>::VertexBuffer() : vSize(0), bufferSize(0)
+gamelib::VertexBuffer<Vertex>::VertexBuffer() : vertexSize(0), bufferSize(0)
 {
 
 }
@@ -26,7 +26,7 @@ gamelib::VertexBuffer<Vertex>::VertexBuffer() : vSize(0), bufferSize(0)
 template <class Vertex>
 void gamelib::VertexBuffer<Vertex>::Create(UINT vertexSize, MESH_PRIMITIVE primitiveType)
 {
-	if (vertexSize == 0 || resource)
+	if (vertexSize == 0 || com_pResource)
 	{
 		return;
 	}
@@ -38,15 +38,15 @@ void gamelib::VertexBuffer<Vertex>::Create(UINT vertexSize, MESH_PRIMITIVE primi
 		&CD3DX12_RESOURCE_DESC::Buffer(sizeVB),
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&resource));
+		IID_PPV_ARGS(&com_pResource));
 	assert(SUCCEEDED(result) && "頂点バッファ生成失敗");
 
 	bufferSize = sizeVB;
-	vSize = static_cast<UINT>(vertexSize);
+	this->vertexSize = static_cast<UINT>(vertexSize);
 
-	vBView.BufferLocation = resource->GetGPUVirtualAddress();
-	vBView.SizeInBytes = sizeVB;
-	vBView.StrideInBytes = sizeVT;
+	vbView.BufferLocation = com_pResource->GetGPUVirtualAddress();
+	vbView.SizeInBytes = sizeVB;
+	vbView.StrideInBytes = sizeVT;
 	this->primitiveType = primitiveType;
 }
 
@@ -60,24 +60,24 @@ template <class Vertex>
 void gamelib::VertexBuffer<Vertex>::Map(Vertex* pVertices)
 {
 	Vertex* vertMap = nullptr;
-	HRESULT result = resource->Map(0, nullptr, (void**)&vertMap);
+	HRESULT result = com_pResource->Map(0, nullptr, (void**)&vertMap);
 	assert(SUCCEEDED(result) && "頂点バッファ転送失敗");
 	memcpy(vertMap, pVertices, bufferSize);
-	resource->Unmap(0, nullptr);
+	com_pResource->Unmap(0, nullptr);
 }
 
 template <class Vertex>
 void* gamelib::VertexBuffer<Vertex>::GetMapPointer()
 {
 	void* vertMap = nullptr;
-	resource->Map(0, nullptr, (void**)&vertMap);
+	com_pResource->Map(0, nullptr, (void**)&vertMap);
 	return vertMap;
 }
 
 template <class Vertex>
 void gamelib::VertexBuffer<Vertex>::UnMap()
 {
-	resource->Unmap(0, nullptr);
+	com_pResource->Unmap(0, nullptr);
 }
 
 template <class Vertex>
@@ -85,14 +85,14 @@ void gamelib::VertexBuffer<Vertex>::BufferCommand()
 {
 	static auto* cmdList = Dx12Renderer::GetCommandList();
 	cmdList->IASetPrimitiveTopology((D3D_PRIMITIVE_TOPOLOGY)primitiveType);
-	cmdList->IASetVertexBuffers(0, 1, &vBView);
+	cmdList->IASetVertexBuffers(0, 1, &vbView);
 }
 
 template <class Vertex>
 void gamelib::VertexBuffer<Vertex>::Draw()
 {
 	static auto* cmdList = Dx12Renderer::GetCommandList();
-	cmdList->DrawInstanced(vSize, 1, 0, 0);
+	cmdList->DrawInstanced(vertexSize, 1, 0, 0);
 }
 
 template<class Vertex>

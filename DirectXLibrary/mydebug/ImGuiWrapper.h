@@ -10,7 +10,7 @@ namespace gamelib
 class ImGuiWrapper
 {
 private:
-	std::unique_ptr<class DescriptorHeap> descriptorHeap;
+	std::unique_ptr<class DescriptorHeap> u_pDescriptorHeap;
 public:
 	//ImGui‰Šú‰»ˆ—
 	ImGuiWrapper();

@@ -10,7 +10,7 @@ namespace gamelib
 class GrayScale : public IPostProcess
 {
 private:
-	std::unique_ptr<RenderTarget> render;
+	std::unique_ptr<RenderTarget> u_pRenderTarget;
 public:
 	GrayScale();
 	void Befoer() override;
@@ -20,7 +20,7 @@ public:
 class Sepia : public IPostProcess
 {
 private:
-	std::unique_ptr<RenderTarget> render;
+	std::unique_ptr<RenderTarget> u_pRenderTarget;
 public:
 	Sepia();
 	void Befoer() override;
@@ -37,7 +37,7 @@ public:
 class Mosaic : public IPostProcess
 {
 private:
-	std::unique_ptr<RenderTarget> render;
+	std::unique_ptr<RenderTarget> u_pRenderTarget;
 public:
 	Mosaic();
 	void Befoer() override;
@@ -47,7 +47,7 @@ public:
 class Grain : public IPostProcess
 {
 private:
-	std::unique_ptr<RenderTarget> render;
+	std::unique_ptr<RenderTarget> u_pRenderTarget;
 public:
 	Grain();
 	void Befoer() override;
@@ -57,7 +57,7 @@ public:
 class RetroFilter : public IPostProcess
 {
 private:
-	std::unique_ptr<RenderTarget> render;
+	std::unique_ptr<RenderTarget> u_pRenderTarget;
 public:
 	RetroFilter();
 	void Befoer() override;
@@ -67,12 +67,13 @@ public:
 class GaussFilter : public IPostProcess
 {
 private:
-	IPipelineState* renderPipeline;
-	IPipelineState* blurWPipeline;
-	IPipelineState* blurHPipeline;
+	std::weak_ptr<IPipelineState> w_pRenderPipeline;
+	std::weak_ptr<IPipelineState> w_pBlurWPipeline;
+	std::weak_ptr<IPipelineState> w_pBlurHPipeline;
 
-	std::unique_ptr<GaussianBlur> gauss;
-	std::unique_ptr<RenderTarget> textures[2];
+	std::unique_ptr<GaussianBlur> u_pGaussianBlur;
+	//ècÅAâ°Ç…ÉuÉâÅ[Çä|ÇØÇÈÇΩÇﬂ2ñá
+	std::unique_ptr<RenderTarget> u_pRenderTargets[2];
 public:
 	GaussFilter();
 	void Befoer() override;
@@ -82,16 +83,27 @@ public:
 class Bloom : public IPostProcess
 {
 private:
-	IPipelineState* highlimPipeline;
-	IPipelineState* hdBlurWPipeline;
-	IPipelineState* hdBlurHPipeline;
-	IPipelineState* bloomPipeline;
+	std::weak_ptr<IPipelineState> w_pHighlimPipeline;
+	std::weak_ptr<IPipelineState> w_pBlurWPipeline;
+	std::weak_ptr<IPipelineState> w_pBlurHPipeline;
+	std::weak_ptr<IPipelineState> w_pBloomPipeline;
+	std::unique_ptr<RenderTarget> u_pHighlimRenderTarget;
 
-	std::unique_ptr<GaussianBlur> gauss;
-	std::unique_ptr<RenderTarget> highTex;
-	std::unique_ptr<RenderTarget> textures[2];
+	std::unique_ptr<GaussianBlur> u_pGaussianBlur;
+	//ècÅAâ°Ç…ÉuÉâÅ[Çä|ÇØÇÈÇΩÇﬂ2ñá
+	std::unique_ptr<RenderTarget> u_pRenderTargets[2];
 public:
 	Bloom();
+	void Befoer() override;
+	void After() override;
+};
+
+class DepthOfField : public IPostProcess
+{
+private:
+
+public:
+	DepthOfField();
 	void Befoer() override;
 	void After() override;
 };

@@ -11,7 +11,7 @@ class PipelineManager
 {
 private:
 	//グラフィックスパイプラインを格納する配列
-	std::unordered_map<std::string, std::unique_ptr<IPipelineState>> psoDatas;
+	std::unordered_map<std::string, std::shared_ptr<IPipelineState>> u_map_psoDatas;
 	
 	PipelineManager() = default;
 	~PipelineManager() = default;
@@ -30,6 +30,6 @@ public:
 	/// </summary>
 	/// <param name="_pipelineTag"></param>
 	/// <returns></returns>
-	IPipelineState* GetPipelineState(const std::string& _pipelineTag) const;
+	std::weak_ptr<IPipelineState> GetPipelineState(const std::string& _pipelineTag) const;
 };
 } // namespace gamelib

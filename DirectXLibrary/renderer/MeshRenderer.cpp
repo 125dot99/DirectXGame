@@ -3,23 +3,18 @@
 #include "../loader/ResourceManager.h"
 #include "../pipeline/PipelineManager.h"
 
-gamelib::MeshRenderer::MeshRenderer()
-{
-
-}
-
-gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, const std::string& _meshName, const std::string& _materialName, std::weak_ptr<FbxAnimation> w_p_fbxAnima)
+gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, const std::string& meshName, const std::string& materialName, std::weak_ptr<FbxAnimation> w_pFbxAnimation)
 {
 	this->pGameObject = pGameObject;
 	this->w_pFbxAnimation = w_pFbxAnimation;
-	w_pMesh = ResourceManager::GetInstance()->GetMesh(_meshName);
-	if (_materialName != "")
+	w_pMesh = ResourceManager::GetInstance()->GetMesh(meshName);
+	if (materialName != "")
 	{
-		w_pMaterial = ResourceManager::GetInstance()->GetMaterial(_materialName);
+		w_pMaterial = ResourceManager::GetInstance()->GetMaterial(materialName);
 	}
 }
 
-gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, std::shared_ptr<IMesh> s_pMesh, std::shared_ptr<IMaterial> s_pMaterial, std::weak_ptr<FbxAnimation> w_p_fbxAnima)
+gamelib::MeshRenderer::MeshRenderer(GameObject* pGameObject, std::shared_ptr<IMesh> s_pMesh, std::shared_ptr<IMaterial> s_pMaterial, std::weak_ptr<FbxAnimation> w_pFbxAnimation)
 {
 	this->pGameObject = pGameObject;
 	this->w_pFbxAnimation = w_pFbxAnimation;

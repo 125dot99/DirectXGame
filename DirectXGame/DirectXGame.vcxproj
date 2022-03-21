@@ -163,12 +163,16 @@
   <ItemGroup>
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="CafeScene.h" />
+    <ClInclude Include="EventRayDection.h" />
+    <ClInclude Include="FotMode.h" />
     <ClInclude Include="GameCameraControl.h" />
     <ClInclude Include="EndScene.h" />
     <ClInclude Include="GpuTerrainCollider.h" />
     <ClInclude Include="EnemyManager.h" />
+    <ClInclude Include="InputControl.h" />
     <ClInclude Include="InvaderFilter.h" />
     <ClInclude Include="MiniGameState.h" />
+    <ClInclude Include="Mistress.h" />
     <ClInclude Include="ReflectCamera.h" />
     <ClInclude Include="GameClock.h" />
     <ClInclude Include="GameScene1.h" />
@@ -186,10 +190,12 @@
     <ClInclude Include="SceneFade.h" />
     <ClInclude Include="Score.h" />
     <ClInclude Include="SimpleFilter.h" />
+    <ClInclude Include="SkyMaterial.h" />
     <ClInclude Include="Talk.h" />
+    <ClInclude Include="TalkObserver.h" />
     <ClInclude Include="TestScene.h" />
     <ClInclude Include="TitleScene.h" />
-    <ClInclude Include="Wave.h" />
+    <ClInclude Include="WaveMaterial.h" />
     <ClInclude Include="WaveSimulate.h" />
     <ClInclude Include="WorldShip.h" />
     <ClInclude Include="WorldShipState.h" />
@@ -197,11 +203,14 @@
   <ItemGroup>
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="CafeScene.cpp" />
+    <ClCompile Include="EventRayDection.cpp" />
+    <ClCompile Include="FotMode.cpp" />
     <ClCompile Include="GameCamereControl.cpp" />
     <ClCompile Include="EndScene.cpp" />
     <ClCompile Include="GpuTerrainCollider.cpp" />
     <ClCompile Include="EnemyManager.cpp" />
     <ClCompile Include="MiniGameState.cpp" />
+    <ClCompile Include="Mistress.cpp" />
     <ClCompile Include="ReflectCamera.cpp" />
     <ClCompile Include="GameClock.cpp" />
     <ClCompile Include="GameScene1.cpp" />
@@ -222,99 +231,15 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       </ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="SkyMaterial.cpp" />
     <ClCompile Include="Talk.cpp" />
+    <ClCompile Include="TalkObserver.cpp" />
     <ClCompile Include="TestScene.cpp" />
     <ClCompile Include="TitleScene.cpp" />
-    <ClCompile Include="Wave.cpp" />
+    <ClCompile Include="WaveMaterial.cpp" />
     <ClCompile Include="WaveSimulate.cpp" />
     <ClCompile Include="WorldShip.cpp" />
     <ClCompile Include="WorldShipState.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="HLSL\FbxToonHeader.hlsli" />
-    <None Include="HLSL\WaveMesh.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="HLSL\CircleShadowPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\FbxToonPS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\FbxToonVS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\TestCS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CSmain</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CSmain</EntryPointName>
-    </FxCompile>
-    <FxCompile Include="HLSL\ToonPS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\TexPaintPS.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-    </FxCompile>
-    <FxCompile Include="HLSL\SkydomePS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshDS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">DSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshHS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">HSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">HSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshPS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshVS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">VSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">VSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveSimulatePS.hlsl">
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">PSmain</EntryPointName>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
-    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

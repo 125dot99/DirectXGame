@@ -3,35 +3,20 @@
 
 namespace gamelib
 {
-//レンダーテクスチャクラス
-class RenderTexture : public Texture
-{
-public:
-	friend class RenderTarget;
-	RenderTexture(const Vector2& _textureSize, DXGI_FORMAT format);
-};
-
 class RenderTarget : public Texture
 {
 private:
+	float clearColors[4];
 	//RTVのデスクリプタヒープ
-	std::weak_ptr<DescriptorHeap> descriptorHeapRTV;
-	//描画矩形コマンド送信
-	void RasterizerStageCommand();
-	//レンダーターゲットビューコマンド送信
-	void OMSetRenderTarget();
-	void OMSetRenderTargetClear();
-	//レンダーターゲットビューとデプスステンシルビューコマンド送信
-	void OMSetRenderTargetDepth();
-	void OMSetRenderTargetDepthClear();
+	std::weak_ptr<DescriptorHeap> w_pDescriptorHeapRTV;
 public:
-	RenderTarget(const Vector2& textureSize, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM);
+	RenderTarget(const Vector2& textureSize, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, const Vector4& clearColor = {});
 
 	/// <summary>
 	/// レンダーターゲットビューの作成
 	/// </summary>
 	/// <param name="pDescHeapRTV"></param>
-	void CreateRTV(std::weak_ptr<DescriptorHeap> pDescHeapRTV);
+	void CreateRTV(const std::weak_ptr<DescriptorHeap>& w_pDescriptorHeapRTV);
 
 	/// <summary>
 	/// レンダーターゲットに設定

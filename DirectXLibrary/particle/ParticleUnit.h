@@ -14,33 +14,21 @@ class ParticleUnit
 private:
 	//パーティクル発生させる最大数
 	static const int VP_MAX_SIZE = 1024;
-	
-	Emitter* emitter;
+	//エミッター
+	Emitter* pEmitter;
 	//パーティクルの配列
-	std::forward_list<Particle> particles;
+	std::forward_list<Particle> f_listParticles;
 	//頂点バッファ
-	std::unique_ptr<VertexBuffer<VertexPosColorScaleAngle>> vertexBuffer;
+	std::unique_ptr<VertexBuffer<VertexPosColorScaleAngle>> u_pVertexBuffer;
 	//テクスチャ
-	std::weak_ptr<Texture> texture;
+	std::weak_ptr<Texture> w_pTexture;
 
 	void AddParticle();
 public:
-	ParticleUnit(const std::weak_ptr<Texture>& w_p_Texture, Emitter* p_Emitter);
-	~ParticleUnit();
+	ParticleUnit(const std::weak_ptr<Texture>& w_pTexture, Emitter* pEmitter);
 
 	void Update();
 
-	virtual void Draw();
-};
-
-class ParticleToonUnit : public ParticleUnit
-{
-private:
-	std::weak_ptr<Texture> normalTex;
-public:
-	ParticleToonUnit(const std::weak_ptr<Texture>& pTexture, 
-		const std::weak_ptr<Texture>& pNormalTex, Emitter* p_Emitter);
-
-	void Draw() override;
+	void Draw();
 };
 } // namespace gamelib

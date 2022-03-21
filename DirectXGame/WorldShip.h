@@ -12,16 +12,16 @@ private:
 	friend class WorldShipMove;
 	friend class WorldShipTalk;
 	STATE_ENUM state_enum;
+	std::unique_ptr<IObjectState> state;
 
 	const float RESISTANCE = 0.95f;
 	float speed;
 	Vector3 velocity;
 	Vector3 accel;
 
-	FbxAnimation* anima;
-	std::unique_ptr<IObjectState> state;
+	std::shared_ptr<FbxAnimation> s_pFbxAnimation;
 public:
-	WorldShip(FbxAnimation* anima);
+	WorldShip(std::shared_ptr<FbxAnimation> s_pFbxAnimation);
 	//èâä˙âª
 	void Initialize() override;
 	//çXêV

@@ -234,6 +234,18 @@ inline Matrix4 MatrixTranspose(const Matrix4& m)
 		m.m[0][3], m.m[1][3], m.m[2][3], m.m[3][3]);
 }
 
+inline Matrix4 MatrixShadow(const Vector3& lightV, const float groundY)
+{
+	Matrix4 mat = MatrixIdentity();
+	mat.m[1][0] = -lightV.x / lightV.y;
+	mat.m[1][1] = 0.0f;
+	mat.m[1][2] = -lightV.z / lightV.y;
+	mat.m[3][0] = lightV.x / lightV.y * groundY;
+	mat.m[3][1] = groundY + 0.01f;
+	mat.m[3][2] = lightV.z / lightV.y * groundY;
+	return mat;
+}
+
 inline Vector3 operator*(const Vector3& v, const Matrix4& m) { return Transform(v, m); }
 inline Matrix4 operator*(const Matrix4& m1, const Matrix4& m2) { return Matrix4(m1) *= m2; }
 

@@ -56,6 +56,10 @@ gamelib::LevelData::ObjectData gamelib::JsonLevelLoader::ReadSceneObject(std::if
 	{
 		inFile >> line_data;
 		object.fileName = line_data.substr(1, line_data.size() - 2);
+		if (object.fileName.back() == '\"')
+		{
+			object.fileName.erase(object.fileName.size() - 1);
+		}
 		printf("file_name : %s\n", object.fileName.c_str());
 		inFile >> line_data;
 	}
@@ -97,7 +101,7 @@ gamelib::LevelData::ObjectData gamelib::JsonLevelLoader::ReadSceneObject(std::if
 	return object;
 }
 
-gamelib::LevelData* gamelib::JsonLevelLoader::LoadFile(const std::string& fileName)
+gamelib::LevelData gamelib::JsonLevelLoader::LoadFile(const std::string& fileName)
 {
 	const std::string fullpath = JSON_LEVEL_PATH + fileName + ".json";
 	std::ifstream inFile;
@@ -119,14 +123,13 @@ gamelib::LevelData* gamelib::JsonLevelLoader::LoadFile(const std::string& fileNa
 
 	std::getline(inFile, line, '{');
 	assert(line.find("objects") != std::string::npos);
-	LevelData* levelData = new LevelData();
-
+	LevelData levelData;
 	while (std::getline(inFile, line, ','))
 	{
 		if (line.find("MESH") != std::string::npos)
 		{
 			LevelData::ObjectData object(ReadSceneObject(inFile));
-			levelData->objects.emplace_back(object);
+			levelData.objects.emplace_back(object);
 			printf("---------------------------------------\n");
 		}
 	}

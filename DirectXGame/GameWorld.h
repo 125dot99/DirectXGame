@@ -15,6 +15,6 @@ static const primitive::Box BOX_OUT_CAFE{ Vector3(-10.4f, -1, 19.4f), Vector3(10
 
 //“X“à‚Ì‹éŒ`”»’è—p
 static const primitive::Box BOX_IN_CAFE{ Vector3(-5, -1, -1), Vector3(5, 3, 3) };
-static const primitive::Box BOX_IN_CAFE_TABLE_FRONT{ Vector3(0.75f, -1, -2), Vector3(6, 1, 1.3f) };
+static const primitive::Box BOX_IN_CAFE_TABLE_FRONT{ Vector3(0.75f, -1, -2), Vector3(6, 1, 0.5f) };
 static const primitive::Box BOX_IN_CAFE_TABLE_BACK{ Vector3(0.75f, -1, 1.5f), Vector3(6, 1, 4) };
 } // namespace game_world

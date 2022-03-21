@@ -45,9 +45,6 @@
     <ClInclude Include="ResourceLoader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Wave.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="ReflectCamera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -111,9 +108,6 @@
     <ClInclude Include="WorldShipState.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="InvaderFilter.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="MiniGameState.h">
       <Filter>ヘッダー ファイル\MiniGame</Filter>
     </ClInclude>
@@ -126,15 +120,36 @@
     <ClInclude Include="TestScene.h">
       <Filter>ヘッダー ファイル\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="WaveMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="InputControl.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="InvaderFilter.h">
+      <Filter>ヘッダー ファイル\MiniGame</Filter>
+    </ClInclude>
+    <ClInclude Include="EventRayDection.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="FotMode.h">
+      <Filter>ヘッダー ファイル\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Mistress.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="TalkObserver.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Player.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="Wave.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="WaveSimulate.cpp">
@@ -221,51 +236,23 @@
     <ClCompile Include="TestScene.cpp">
       <Filter>ソース ファイル\Scene</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="HLSL\WaveMesh.hlsli">
-      <Filter>HLSL</Filter>
-    </None>
-    <None Include="HLSL\FbxToonHeader.hlsli">
-      <Filter>HLSL</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="HLSL\WaveMeshDS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshHS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshPS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveMeshVS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\TexPaintPS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\SkydomePS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\WaveSimulatePS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\TestCS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\ToonPS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\FbxToonPS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\FbxToonVS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
-    <FxCompile Include="HLSL\CircleShadowPS.hlsl">
-      <Filter>HLSL</Filter>
-    </FxCompile>
+    <ClCompile Include="WaveMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="EventRayDection.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="FotMode.cpp">
+      <Filter>ソース ファイル\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Mistress.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="TalkObserver.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

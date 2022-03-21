@@ -1,16 +1,16 @@
 #include "WorldShip.h"
 
-#include "input/Input.h"
+#include "InputControl.h"
 #include "GameWorld.h"
 #include "WorldShipState.h"
 #include "collision/CollisionHelper.h"
 
-WorldShip::WorldShip(FbxAnimation* anima) : anima(anima)
+WorldShip::WorldShip(std::shared_ptr<FbxAnimation> s_pFbxAnimation) : s_pFbxAnimation(s_pFbxAnimation)
 {
 	//èâä˙âªéû
 	state_enum = STATE_ENUM::WAIT;
 	state = std::make_unique<WorldShipWait>(this);
-	anima->Play(1);
+	this->s_pFbxAnimation->Play(1);
 }
 
 void WorldShip::Initialize()
@@ -25,22 +25,14 @@ void WorldShip::Update()
 	switch (state_enum)
 	{
 	case STATE_ENUM::WAIT:
-		if (Input::GetKeyborad()->IsKey(KEY_CODE::D) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::A) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::W) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::S) ||
-			Input::GetGamepad()->GetLeftThumb().Length() > 0)
+		if (input_control::MoveAction())
 		{
 			state_enum = STATE_ENUM::MOVE;
 			state = std::make_unique<WorldShipMove>(this);
 		}
 		break;
 	case STATE_ENUM::MOVE:
-		if (!(Input::GetKeyborad()->IsKey(KEY_CODE::D) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::A) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::W) ||
-			Input::GetKeyborad()->IsKey(KEY_CODE::S) ||
-			Input::GetGamepad()->GetLeftThumb().Length() > 0))
+		if (!input_control::MoveAction())
 		{
 			state_enum = STATE_ENUM::WAIT;
 			state = std::make_unique<WorldShipWait>(this);
@@ -52,6 +44,7 @@ void WorldShip::Update()
 		break;
 	}
 	state->Update();
+	s_pFbxAnimation->Update();
 	velocity += accel;
 	velocity *= RESISTANCE;
 	velocity.y = 0;

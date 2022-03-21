@@ -1,54 +1,40 @@
 #include "WaveSimulate.h"
 
 #include "math/MyMath.h"
-#include "math/Quaternion.h"
 #include "posteffect/RenderManager.h"
 #include "pipeline/PipelineManager.h"
 
 struct PaintCbData
 {
 	Vector4 pos;
-	/*Vector4 scale;*/
 	Vector2 screen;
-	PaintCbData(const Vector3& pos, /*const Vector2& scale, */const Vector2& screen) :
-		pos(pos), /*scale(scale),*/ screen(screen) {}
+	PaintCbData(const Vector3& pos, const Vector2& screen) :
+		pos(pos), screen(screen) {}
 };
 
-enum WAVE_TEX_INDEX
+WaveSimulates::WaveSimulates(GameObject* pPaintObject, const Vector2& _textureSize, float meshSize) : pPaintObject(pPaintObject)
 {
-	INPUT_TEX,
-	WAVE_PREV_TEX,
-	WAVE_PREV_PREV_TEX,
-	WAVE_TEX,
-	NORMAL_TEX,
-	REFLECT_TEX,
-};
-
-WaveSimulates::WaveSimulates(GameObject* pPaintObject, const Vector2& _textureSize, float meshSize)
-{
-	paintObject = pPaintObject;
-	waveMeshSize = Vector2(meshSize, meshSize);
-
+	waveMeshSize = meshSize;
 	//バッファの生成
-	constBuffer.reset(new ConstBuffer);
-	constBuffer->Init(0, sizeof(PaintCbData));
+	u_pConstBuffer = std::make_unique<ConstBuffer>();
+	u_pConstBuffer->Init(0, sizeof(PaintCbData));
 	for (int i = 0; i < REFLECT_TEX; i++)
 	{
 		if (i != NORMAL_TEX)
 		{
-			renderTarget[i].reset(new RenderTarget(_textureSize, DXGI_FORMAT_R32_FLOAT));
-			RenderManager::GetInstance()->Add(renderTarget[i].get());
+			s_pRenderTargets[i] = std::make_shared<RenderTarget>(_textureSize, DXGI_FORMAT_R32_FLOAT);
+			RenderManager::GetInstance()->Add(s_pRenderTargets[i]);
 			continue;
 		}
-		renderTarget[i].reset(new RenderTarget(_textureSize));
-		RenderManager::GetInstance()->Add(renderTarget[i].get());
+		s_pRenderTargets[i] = std::make_shared<RenderTarget>(_textureSize);
+		RenderManager::GetInstance()->Add(s_pRenderTargets[i]);
 	}
 	for (int i = 0; i < 3; i++)
 	{
-		renderTarget[i + 1]->RBRenderTarget();
-		PipelineManager::GetInstance()->GetPipelineState("WaveInitShader")->Command();
+		s_pRenderTargets[i + 1]->RBRenderTarget();
+		PipelineManager::GetInstance()->GetPipelineState("WaveInitShader").lock()->Command();
 		RenderManager::GetInstance()->Draw();
-		renderTarget[i + 1]->RBPixelShaderResource();
+		s_pRenderTargets[i + 1]->RBPixelShaderResource();
 	}
 }
 
@@ -59,72 +45,73 @@ void WaveSimulates::Befoer()
 
 void WaveSimulates::After()
 {
-	RenderManager::GetInstance()->WriteEnd();
+	const auto& renderManager = RenderManager::GetInstance();
+	renderManager->WriteEnd();
 	const auto& pPipeline = PipelineManager::GetInstance();
 	{
 		const float s = 0.35f;
-		Vector3 pos = paintObject->GetPosition();
-		Vector2 rot = Vector2::FromAngle(paintObject->GetRotation().y);
+		Vector3 pos = pPaintObject->GetPosition();
+		Vector2 rot = Vector2::FromAngle(pPaintObject->GetRotation().y);
 		pos += Vector3(rot.y, 0, rot.x).Normalize() * s;
 		pos.x *= 1.0f / waveMeshSize.x;
 		pos.z *= 1.0f / waveMeshSize.y;
 		pos += Vector3(0.5f, 0, 0.5f);
 		pos.z = 1.0f - pos.z;
-		PaintCbData p(pos, renderTarget[INPUT_TEX]->GetSize());
-		constBuffer->Map(&p);
+		PaintCbData p(pos, s_pRenderTargets[(int)WAVE_TEXTURE_ENUM::INPUT_TEX]->GetSize());
+		u_pConstBuffer->Map(&p);
 	}
 	//0入力バッファ
-	renderTarget[INPUT_TEX]->RBRenderTarget(true, false);
-	pPipeline->GetPipelineState("WavePaintShader")->Command();
-	constBuffer->GraphicsCommand();
-	RenderManager::GetInstance()->Draw();
-	renderTarget[INPUT_TEX]->RBPixelShaderResource();
+	s_pRenderTargets[INPUT_TEX]->RBRenderTarget(true, false);
+	pPipeline->GetPipelineState("WavePaintShader").lock()->Command();
+	u_pConstBuffer->GraphicsCommand();
+	renderManager->Draw();
+	s_pRenderTargets[INPUT_TEX]->RBPixelShaderResource();
 
-	renderTarget[WAVE_PREV_PREV_TEX]->RBRenderTarget();
-	pPipeline->GetPipelineState("PE_R32None")->Command();
-	renderTarget[WAVE_PREV_TEX]->GraphicsSRVCommand(0);
-	RenderManager::GetInstance()->Draw();
-	renderTarget[WAVE_PREV_PREV_TEX]->RBPixelShaderResource();
+	s_pRenderTargets[WAVE_PREV_PREV_TEX]->RBRenderTarget();
+	pPipeline->GetPipelineState("PE_R32None").lock()->Command();
+	s_pRenderTargets[WAVE_PREV_TEX]->GraphicsSRVCommand(0);
+	renderManager->Draw();
+	s_pRenderTargets[WAVE_PREV_PREV_TEX]->RBPixelShaderResource();
 
-	renderTarget[WAVE_PREV_TEX]->RBRenderTarget();
-	pPipeline->GetPipelineState("PE_R32None")->Command();
-	renderTarget[WAVE_TEX]->GraphicsSRVCommand(0);
-	RenderManager::GetInstance()->Draw();
-	renderTarget[WAVE_PREV_TEX]->RBPixelShaderResource();
+	s_pRenderTargets[WAVE_PREV_TEX]->RBRenderTarget();
+	pPipeline->GetPipelineState("PE_R32None").lock()->Command();
+	s_pRenderTargets[WAVE_TEX]->GraphicsSRVCommand(0);
+	renderManager->Draw();
+	s_pRenderTargets[WAVE_PREV_TEX]->RBPixelShaderResource();
 
 	//合成
-	renderTarget[WAVE_TEX]->RBRenderTarget();
-	pPipeline->GetPipelineState("WaveSimulateShader")->Command();
+	s_pRenderTargets[WAVE_TEX]->RBRenderTarget();
+	pPipeline->GetPipelineState("WaveSimulateShader").lock()->Command();
 	for (int i = 0; i < WAVE_TEX; i++)
 	{
-		renderTarget[i]->GraphicsSRVCommand(i);
+		s_pRenderTargets[i]->GraphicsSRVCommand(i);
 	}
-	RenderManager::GetInstance()->Draw();
-	renderTarget[WAVE_TEX]->RBPixelShaderResource();
+	renderManager->Draw();
+	s_pRenderTargets[WAVE_TEX]->RBPixelShaderResource();
 
 	//normal
-	renderTarget[NORMAL_TEX]->RBRenderTarget();
-	pPipeline->GetPipelineState("HighNormal")->Command();
-	renderTarget[WAVE_TEX]->GraphicsSRVCommand(0);
-	RenderManager::GetInstance()->Draw();
-	renderTarget[NORMAL_TEX]->RBPixelShaderResource();
-	RenderManager::GetInstance()->WriteStart();
+	s_pRenderTargets[NORMAL_TEX]->RBRenderTarget();
+	pPipeline->GetPipelineState("HighNormal").lock()->Command();
+	s_pRenderTargets[WAVE_TEX]->GraphicsSRVCommand(0);
+	renderManager->Draw();
+	s_pRenderTargets[NORMAL_TEX]->RBPixelShaderResource();
+	renderManager->WriteStart();
 }
 
 ReflectRender::ReflectRender(const Vector2& _textureSize)
 {
-	render = std::make_unique<RenderTarget>(_textureSize);
-	RenderManager::GetInstance()->Add(render.get());
+	s_pRenderTarget = std::make_shared<RenderTarget>(_textureSize);
+	RenderManager::GetInstance()->Add(s_pRenderTarget);
 }
 
 void ReflectRender::Befoer()
 {
 	RenderManager::GetInstance()->WriteEnd();
-	render->RBRenderTarget(true, true);
+	s_pRenderTarget->RBRenderTarget(true, true);
 }
 
 void ReflectRender::After()
 {
-	render->RBPixelShaderResource();
+	s_pRenderTarget->RBPixelShaderResource();
 	RenderManager::GetInstance()->WriteStart();
 }

@@ -3,7 +3,9 @@
 #include <wrl.h>
 #include <string>
 #include <memory>
+
 #include "../math/Vector.h"
+#include "Dx12Renderer.h"
 #include "DescriptorHeap.h"
 
 namespace gamelib
@@ -18,22 +20,33 @@ protected:
 	//ファイル名
 	std::string name;
 	//バッファ
-	Microsoft::WRL::ComPtr<ID3D12Resource> resource;
+	Microsoft::WRL::ComPtr<ID3D12Resource> com_pResource;
 	//SRVのデスクリプタヒープ
-	std::weak_ptr<DescriptorHeap> descriptorHeapSRV;
+	std::weak_ptr<DescriptorHeap> w_pDescriptorHeapSRV;
 public:
 	Texture() = default;
+	virtual ~Texture() = default;
 	Texture(ID3D12Resource* pResource, const std::string& _name);
 	
 	/// <summary>
 	/// バッファ生成
 	/// </summary>
 	/// <param name="pDescHeap"></param>
-	void CreateSRV(std::weak_ptr<DescriptorHeap> pDescHeapSRV, UINT index);
+	void CreateSRV(const std::weak_ptr<DescriptorHeap>& w_pDescriptorHeapSRV, UINT index);
 
-	void GraphicsSRVCommand(UINT rootParamIndex) const;
+	inline void GraphicsSRVCommand(UINT rootParamIndex) const
+	{
+		static auto* cmdList = Dx12Renderer::GetCommandList();
+		w_pDescriptorHeapSRV.lock()->Command();
+		cmdList->SetGraphicsRootDescriptorTable(rootParamIndex, w_pDescriptorHeapSRV.lock()->GetGPUHandle(tableIndex));
+	}
 
-	void ComputeSRVCommand(UINT rootParamIndex) const;
+	inline void ComputeSRVCommand(UINT rootParamIndex) const
+	{
+		static auto* cmdList = Dx12Renderer::GetCommandList();
+		w_pDescriptorHeapSRV.lock()->Command();
+		cmdList->SetComputeRootDescriptorTable(rootParamIndex, w_pDescriptorHeapSRV.lock()->GetGPUHandle(tableIndex));
+	}
 
 	/// <summary>
 	/// 格納されているインデックスを取得

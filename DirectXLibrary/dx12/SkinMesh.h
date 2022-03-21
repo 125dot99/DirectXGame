@@ -1,8 +1,10 @@
 #pragma once
+#include <string>
+
 #include "IMesh.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "Material.h"
+
 #include "../math/Matrix4.h"
 
 //fbxsdk専用
@@ -20,12 +22,12 @@ struct FbxMeshNode
 	std::string name;
 	Matrix4 transform;			//ローカル変形行列
 	Matrix4 globalTransform;	//グローバル変形行列
-	FbxMeshNode* parent;		//親ノード
+	FbxMeshNode* pParentNode;	//親ノード
 	FbxMeshNode()
 	{
 		transform = MatrixIdentity();
 		globalTransform = MatrixIdentity();
-		parent = nullptr;
+		pParentNode = nullptr;
 	}
 };
 
@@ -41,21 +43,19 @@ struct FbxBone
 struct SkinMesh : IMesh
 {
 	std::string name;	
-	std::unique_ptr<VertexBuffer<VertexNormalUvBones>> vertexBuffer;
-	std::unique_ptr<IndexBuffer> indexBuffer;
-	std::unique_ptr<Material> material;
+	std::unique_ptr<VertexBuffer<VertexNormalUvBones>> u_pVertexBuffer;
+	std::unique_ptr<IndexBuffer> u_pIndexBuffer;
 
 	//ノード配列
-	std::vector<FbxMeshNode> nodes;
+	std::vector<FbxMeshNode> vecFbxMeshNodes;
 	//ボーン配列
-	std::vector<FbxBone> bones;
+	std::vector<FbxBone> vecFbxBones;
 	//FBXシーン
-	fbxsdk::FbxScene* fbxScene;
+	fbxsdk::FbxScene* pFbxScene;
 
 	SkinMesh();
-	~SkinMesh();
 
 	void CreateBuffers() override;
-	void Draw(bool isMtlCommand = true) override;
+	void Draw() override;
 };
 } // namespace gamelib

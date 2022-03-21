@@ -4,8 +4,8 @@
 void gamelib::MeshFactory::ComputeNormalFlat(IMesh* pMesh)
 {
     Mesh* mesh = dynamic_cast<Mesh*>(pMesh);
-    std::vector<VertexNormalUv>& vertices = mesh->vertexBuffer->vertices;
-    std::vector<unsigned short>& indices = mesh->indexBuffer->indices;
+    std::vector<VertexNormalUv>& vertices = mesh->u_pVertexBuffer->vertices;
+    std::vector<unsigned short>& indices = mesh->u_pIndexBuffer->indices;
     for (int i = 0; i < indices.size() / 3; i++)
     {
         int index = i * 3;
@@ -33,8 +33,8 @@ void gamelib::MeshFactory::ComputeNormalFlat(IMesh* pMesh)
 void gamelib::MeshFactory::ComputeNormalSmooth(IMesh* pMesh)
 {
     Mesh* mesh = dynamic_cast<Mesh*>(pMesh);
-    std::vector<VertexNormalUv>& vertices = mesh->vertexBuffer->vertices;
-    std::vector<unsigned short>& indices = mesh->indexBuffer->indices;
+    std::vector<VertexNormalUv>& vertices = mesh->u_pVertexBuffer->vertices;
+    std::vector<unsigned short>& indices = mesh->u_pIndexBuffer->indices;
 
     //for (auto it = smoothData.begin(); it != smoothData.end(); ++it)
     //{
@@ -70,10 +70,9 @@ gamelib::IMesh* gamelib::MeshFactory::CreatePlane(float scale, const Vector3& _o
     }
     std::vector<unsigned short> indices = { 0, 2, 1, 3 };
     Mesh* mesh = new Mesh;
-    mesh->material.reset(new Material);
-    mesh->vertexBuffer->vertices.swap(vertices);
-    mesh->indexBuffer->indices.swap(indices);
-    //mesh->vertexBuffer->SetPrimitive(MESH_PRIMITIVE::TRIANGLE_STRIP);
+    mesh->u_pVertexBuffer->vertices.swap(vertices);
+    mesh->u_pIndexBuffer->indices.swap(indices);
+    //mesh->u_pVertexBuffer->SetPrimitive(MESH_PRIMITIVE::TRIANGLE_STRIP);
     mesh->CreateBuffers();
     return mesh;
 }
@@ -82,7 +81,7 @@ gamelib::IMesh* gamelib::MeshFactory::CreatePatchPlane(float point, float eage, 
 {
     float uvsize = 1.0f / uvPoint;
     Mesh* mesh = new Mesh();
-    std::vector<VertexNormalUv>& vertices = mesh->vertexBuffer->vertices;
+    std::vector<VertexNormalUv>& vertices = mesh->u_pVertexBuffer->vertices;
     for (int y = 0; y < point + 1; y++)
     {
         for (int x = 0; x < point + 1; x++)
@@ -99,7 +98,7 @@ gamelib::IMesh* gamelib::MeshFactory::CreatePatchPlane(float point, float eage, 
         v.pos.x -= eage * 0.5f;
         v.pos.z -= eage * 0.5f;
     }
-    std::vector<unsigned short>& indices = mesh->indexBuffer->indices;
+    std::vector<unsigned short>& indices = mesh->u_pIndexBuffer->indices;
     for (int z = 0; z < point; z++)
     {
         for (int x = 0; x < point; x++)
@@ -114,7 +113,7 @@ gamelib::IMesh* gamelib::MeshFactory::CreatePatchPlane(float point, float eage, 
         }
     }
     mesh->CreateBuffers();
-    mesh->vertexBuffer->SetPrimitive(MESH_PRIMITIVE::POINT_4_PATCH);
+    mesh->u_pVertexBuffer->SetPrimitive(MESH_PRIMITIVE::POINT_4_PATCH);
     return mesh;
 }
 

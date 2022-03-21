@@ -12,12 +12,12 @@ struct FbxAnimaParameter;
 struct CBMatrixBones //ボーン用
 {
 	static const int MAX_BONES = 32;
-	Matrix4 bones[MAX_BONES];
+	Matrix4 vecFbxBones[MAX_BONES];
 	void Copy()
 	{
 		for (int i = 0; i < MAX_BONES; i++)
 		{
-			bones[i] = MatrixIdentity();
+			vecFbxBones[i] = MatrixIdentity();
 		}
 	}
 };
@@ -29,16 +29,16 @@ private:
 	int animaStack;
 	int boneSize;
 	//ボーン転送用バッファ
-	std::unique_ptr<ConstBuffer> cbuffer;
+	std::unique_ptr<ConstBuffer> u_pConstBuffer;
 	//アニメーションデータ
-	std::unique_ptr<FbxAnimaParameter> animaParam;
+	std::unique_ptr<FbxAnimaParameter> u_pAnimaParam;
 	//モデルのボーン
 	FbxBone* pMeshBone;
 	//FBXシーン
-	fbxsdk::FbxScene* fbxScene;
+	fbxsdk::FbxScene* pFbxScene;
 
 public:
-	FbxAnimation(IMesh* p_mesh);
+	FbxAnimation(const std::string& skinmeshName);
 	~FbxAnimation();
 
 	void Play(int index);

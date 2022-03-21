@@ -1,22 +1,20 @@
 #include "GameScene1.h"
-#include "WorldShip.h"
+
 #include "ReflectCamera.h"
-#include "WaveSimulate.h"
 #include "GameCameraControl.h"
+
+#include "WorldShip.h"
+#include "WaveSimulate.h"
+#include "WaveMaterial.h"
+
+#include "dx12/Mesh.h"
+#include "dx12/MeshFactory.h"
+
 #include "CafeScene.h"
 #include "SceneFade.h"
 #include "Pause.h"
-
-enum MODEL
-{
-	SHIP,
-	PLAYER,
-	CAFE,
-	SPHERE,
-	SKY,
-	CIRCLE,
-	MAX,
-};
+#include "FotMode.h"
+#include "InputControl.h"
 
 enum TEXTURE
 {
@@ -24,61 +22,52 @@ enum TEXTURE
 	TEX_TALK,
 	TEX_EXIT,
 	TEX_OPRATION,
-	TEX_PAUSE,
 	TEX_MAX,
 };
 
 bool isSceneBack;
-bool isInCafe;
 
 void GameScene1::Initialize()
 {
 	//リソースの取得
 	auto resourceManager = ResourceManager::GetInstance();
-	models.resize(MAX);
-	models[SHIP] = resourceManager->GetModel("ship3");
-	models[PLAYER] = resourceManager->GetModel("char");
-	models[CAFE] = resourceManager->GetModel("cafe_exterior");
-	models[SPHERE] = resourceManager->GetModel("sphere");
-	models[SKY] = resourceManager->GetModel("hemisphere");
-	models[CIRCLE] = resourceManager->GetModel("circle_wall");
-
 	textures.resize(TEX_MAX);
 	textures[TEX_WHITE] = resourceManager->GetDefalutTexture();
 	textures[TEX_TALK] = resourceManager->GetTexture("char_event.png");
 	textures[TEX_EXIT] = resourceManager->GetTexture("char_event_exit.png");
 	textures[TEX_OPRATION] = resourceManager->GetTexture("op_ui.png");
-	textures[TEX_PAUSE] = resourceManager->GetTexture("pause_ui.png");
-
-	playerAnima = Factory::CreateUnique<FbxAnimation>(models[PLAYER].lock().get());
+	
+	auto playerAnima = Factory::CreateShared<FbxAnimation>("char");
 
 	const float MAP_SIZE = 100.0f;
-	ship = Factory::Create<WorldShip>(playerAnima.get());
+	ship = Factory::Create<WorldShip>(playerAnima);
 	player = Factory::Create<GameObject>(Vector3(0, 0.5f, -0.1f), Vector3(0, 180, 0), Vector3::One(), ship);
 	testObject = Factory::Create<GameObject>(Vector3(0, 1, -5.0f));
-	cafe = Factory::Create<GameObject>(Vector3(0, 0, 25), Vector3(0, 180, 0));
-	skydome = Factory::Create<GameObject>(Vector3(0, -1, 0), Vector3::Zero(), Vector3(50));
-	wave = Factory::Create<GameObject>(Vector3::Zero(), Vector3::Zero(), Vector3(MAP_SIZE, 1, MAP_SIZE));
-	circle = Factory::Create<GameObject>(Vector3::Zero(), Vector3::Zero(), Vector3(37, 2, 37));
-	
+	auto cafe = Factory::Create<GameObject>(Vector3(0, 0, 25), Vector3(0, 180, 0));
+	auto sky = Factory::Create<GameObject>(Vector3(0, -1, 0), Vector3::Zero(), Vector3(50));
+	auto circle = Factory::Create<GameObject>(Vector3::Zero(), Vector3::Zero(), Vector3(37, 2, 37));
+	auto wave = Factory::Create<GameObject>(Vector3::Zero(), Vector3::Zero(), Vector3(MAP_SIZE, 1, MAP_SIZE));
 	objectManager = Factory::CreateUnique<ObjectManager>();
-	objectManager->Add(ship);
-	objectManager->Add(player);
-	objectManager->Add(testObject);
-	objectManager->Add(cafe, false);
-	objectManager->Add(skydome, false);
-	objectManager->Add(wave, false);
-	objectManager->Add(circle, false);
+	objectManager->Add("ship", ship);
+	objectManager->Add("player", player);
+	objectManager->Add("sphere", testObject);
+	objectManager->Add("cafe", cafe, false);
+	objectManager->Add("sky", sky, false);
+	objectManager->Add("circle", circle, false);
+	objectManager->Add("wave", wave, false);
+	cafePosition = Vector3(0, 0, 20.5f);
+
 	collManager = Factory::CreateUnique<CollisionManager>();
-	collManager->AddCollider(ship, Factory::CreateShared<SphereCollider>(Vector3::Zero(), 1.6f), 0b01);
-	collManager->AddCollider(testObject, Factory::CreateShared<SphereCollider>(Vector3::Zero(), 1.2f), 0b11);
-	
+	collManager->Add(ship, Factory::CreateShared<SphereCollider>(Vector3::Zero(), 1.6f), 0b01);
+	collManager->Add(testObject, Factory::CreateShared<SphereCollider>(Vector3::Zero(), 1.2f), 0b11);
 	objectManager->Initialize();
 
+	rayDection = Factory::CreateUnique<EventRayDection>();
+	rayDection->Add(cafePosition, 5.0f);
 	if (isSceneBack)
 	{
 		isSceneBack = false;
-		ship->SetPosition(Vector3(0, 0, 15));
+		ship->SetPosition(Vector3(0, 0, 17));
 	}
 
 	//カメラの初期化
@@ -92,38 +81,59 @@ void GameScene1::Initialize()
 
 	//ライトの初期化
 	lightGroup = Factory::CreateUnique<LightGroup>();
-	//ゲームの時間管理
+	//ゲームの時間管理 ライトの設定は関数に記述
 	GameClock::SetLightGroup(lightGroup.get());
 
 	//レンダーテクスチャ
 	const Vector2 TEXTURE_SIZE(512);
-	waveSimu =  Factory::CreateUnique<WaveSimulates>(ship, TEXTURE_SIZE, MAP_SIZE);
-	reflectTexture = Factory::CreateUnique<ReflectRender>(TEXTURE_SIZE);
+	waveSimRender = Factory::CreateUnique<WaveSimulates>(ship, TEXTURE_SIZE, MAP_SIZE);
+	reflectRender = Factory::CreateUnique<ReflectRender>(TEXTURE_SIZE);
 	
-	//シェーダーを参照
-	auto pipelineManager = PipelineManager::GetInstance();
-	fbxShader = pipelineManager->GetPipelineState("FbxToonShader");
-	toonShader = pipelineManager->GetPipelineState("ToonShader");
-	skyShader = pipelineManager->GetPipelineState("SkyShader");
-	outlineShader = pipelineManager->GetPipelineState("OutlineShader");
-	fbxOutlineShader = pipelineManager->GetPipelineState("FbxOutlineShader");
-
 	//描画クラス
-	meshRenderer = Factory::CreateUnique<MeshRenderer>();
+	refRendering = Factory::CreateUnique<RenderingPipeline>();
+	mainRendering = Factory::CreateUnique<RenderingPipeline>();
+	enum SHADER { FBX_TOON, OBJ_TOON, SKY, WAVE, FBX_OUTLINE, OBJ_OUTLINE };
+	refRendering->SetPipeline(FBX_TOON, "FbxToonShader");
+	refRendering->SetPipeline(OBJ_TOON, "ToonShader");
+	refRendering->SetPipeline(SKY, "SkyShader");
+
+	refRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(ship, "ship3", "ship3"));
+	refRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(testObject, "sphere", "sphere"));
+	refRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(cafe, "cafe_exterior", "cafe_exterior"));
+	refRendering->Add(FBX_TOON, Factory::CreateShared<MeshRenderer>(player, "char", "char", playerAnima));
+	refRendering->Add(SKY, Factory::CreateShared<MeshRenderer>(sky, "hemisphere", ""));
+	
+	mainRendering->SetPipeline(FBX_TOON, "FbxToonShader");
+	mainRendering->SetPipeline(OBJ_TOON, "ToonShader");
+	mainRendering->SetPipeline(SKY, "SkyShader");
+	mainRendering->SetPipeline(WAVE, "WavePatchShader");
+	mainRendering->SetPipeline(FBX_OUTLINE, "FbxOutlineShader");
+	mainRendering->SetPipeline(OBJ_OUTLINE, "OutlineShader");
+
+	mainRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(ship, "ship3", "ship3"));
+	mainRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(testObject, "sphere", "sphere"));
+	mainRendering->Add(OBJ_TOON, Factory::CreateShared<MeshRenderer>(cafe, "cafe_exterior", "cafe_exterior"));
+
+	mainRendering->Add(OBJ_OUTLINE, Factory::CreateShared<MeshRenderer>(ship, "ship3", ""));
+	mainRendering->Add(OBJ_OUTLINE, Factory::CreateShared<MeshRenderer>(testObject, "sphere", ""));
+	mainRendering->Add(OBJ_OUTLINE, Factory::CreateShared<MeshRenderer>(cafe, "cafe_exterior", ""));
+	mainRendering->Add(FBX_TOON, Factory::CreateShared<MeshRenderer>(player, "char", "char", playerAnima));
+	mainRendering->Add(FBX_OUTLINE, Factory::CreateShared<MeshRenderer>(player, "char", "", playerAnima));
+	mainRendering->Add(SKY, Factory::CreateShared<MeshRenderer>(sky, "hemisphere", ""));
+	
+	//水面用のメッシュの生成
+	waveMesh.reset(MeshFactory::CreatePatchPlane(16, 1.0f, 1.0f));
+	//水面用のマテリアル追加
+	waveMaterial = std::make_shared<WaveMaterial>();
+	waveMaterial->Create();
+	mainRendering->Add(WAVE, Factory::CreateShared<MeshRenderer>(wave, waveMesh, waveMaterial));
+	
 	spriteRenderer = Factory::CreateUnique<SpriteRenderer>();
 	billboardRenderer = Factory::CreateUnique<BillboardRenderer>();
-	ray = Factory::CreateUnique<DebugRay>();
 
-	//auto paTex = resourceManager->GetTexture("effect1.png");
-	//particle = Factory::CreateUnique<ParticleUnit>(paTex);
-	//particleManager = Factory::CreateUnique<ParticleManager>();
-	//particleManager->Add(particle.get());
-
-	auto texture = RenderManager::GetInstance()->GetRenderTarget(4);
+	auto heightMap = RenderManager::GetInstance()->GetRenderTarget(4);
 	waveTerrainColl = Factory::CreateUnique<GpuTerrainCollider>();
-	waveTerrainColl->Initialize(texture, { MAP_SIZE, MAP_SIZE });
-	waveRender = Factory::CreateUnique<Wave>(wave);
-
+	waveTerrainColl->Initialize(heightMap, { MAP_SIZE, MAP_SIZE });
 	childScene = Factory::CreateUnique<SceneFadeOut>(spriteRenderer.get());
 }
 
@@ -131,35 +141,24 @@ void GameScene1::Update()
 {
 	mainCamera->Update();
 	reflectCamera->Update();
-
 	childScene->Update();
 	if (childScene->IsState("None"))
 	{
-		isInCafe = (cafe->GetPosition() + Vector3(0, 0, -4) - ship->GetPosition()).Length() < 10.0f;
-		if (Input::GetKeyborad()->IsKeyDown(KEY_CODE::X) ||
-			Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::X))
+		if (input_control::SubAction())
 		{
 			//ポーズに移行
-			childScene = Factory::CreateUnique<Pause>(spriteRenderer.get());
+			childScene = Factory::CreateUnique<FotMode>(spriteRenderer.get());
 			mainCamera->ChangeCamera(Factory::Create<CameraDebugMode>(mainCamera->GetTransform()));
 		} 
 		else
-		if (Input::GetKeyborad()->IsKeyDown(KEY_CODE::SPACE) ||
-			Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::B))
+		if (input_control::MainAction() && eventNum == (int)EVENT_ENUM::INSIDE)
 		{
-			if (isInCafe)
-			{
-				childScene = Factory::CreateUnique<SceneFadeIn>(spriteRenderer.get());
-			}
+			childScene = Factory::CreateUnique<SceneFadeIn>(spriteRenderer.get());
 		}
 	}
 	else if (childScene->IsNext()) //通常に戻る
 	{
-		if (childScene->IsState("FadeOut"))
-		{
-			childScene = Factory::CreateUnique<BaseChildScene>();
-		}
-		else if (childScene->IsState("FadeIn"))
+		if (childScene->IsState("FadeIn"))
 		{
 			nextSceneState = true;
 		}
@@ -170,100 +169,69 @@ void GameScene1::Update()
 		}
 	}
 	if (childScene->IsState("Pause") || 
+		childScene->IsState("FotMode") || 
 		childScene->IsState("FadeIn"))
 	{
 		return;
 	}
-
+	eventNum = rayDection->Update(ship, 0.7f, 180.0f);
 	GameClock::Update();
-	
 	objectManager->Update();
 	collManager->ChaeckAllCollisions();
-	
-	if (Input::GetKeyborad()->IsKeyDown(KEY_CODE::_0) ||
-		Input::GetGamepad()->IsButtonDown(GAMEPAD_CODE::BACK))
-	{
-		childScene = Factory::CreateUnique<SceneFadeIn>(spriteRenderer.get());
-	}
 }
 
 void GameScene1::Draw()
 {
-	objectManager->RegisterAll();
 	//ポーズ中、会話中でなければ描画
 	bool noneState = childScene->IsState("None") || childScene->IsState("FadeOut");
 	if (noneState)
 	{
-		waveSimu->After();//波のテクスチャを作成
-		playerAnima->Update();
+		waveSimRender->After();//波のテクスチャを作成
 	}
 	//反射用のテクスチャを作成
-	reflectTexture->Befoer();
-	{
-		skyShader->Command();
-		reflectCamera->RegisterCommand(); //反射カメラのセット
-		lightGroup->RegisterAll();
-		meshRenderer->Draw(*skydome, models[SKY]);
-		fbxShader->Command();
-		meshRenderer->Draw(*player, models[PLAYER], playerAnima.get());
-		toonShader->Command();
-		meshRenderer->Draw(*ship, models[SHIP]);
-		meshRenderer->Draw(*testObject, models[SPHERE]);
-		meshRenderer->Draw(*cafe, models[CAFE]);
-	}
-	reflectTexture->After();
+	reflectRender->Befoer();
+	refRendering->Begin();
+	reflectCamera->RegisterCommand(); //反射カメラのセット
+	lightGroup->RegisterAll();
+	refRendering->Draw();
+	reflectRender->After();
 	
 	//コンピュートシェーダの判定
 	waveTerrainColl->Command(testObject);
+	
 	//3Dモデルの描画
-	{
-		skyShader->Command();
-		mainCamera->RegisterCommand(); //通常カメラのセット
-		meshRenderer->Draw(*skydome, models[SKY]);
-		fbxShader->Command();
-		meshRenderer->Draw(*player, models[PLAYER], playerAnima.get());
-		toonShader->Command();
-		meshRenderer->Draw(*ship, models[SHIP]);
-		meshRenderer->Draw(*testObject, models[SPHERE]);
-		meshRenderer->Draw(*cafe, models[CAFE]);
-		//波の描画
-		waveRender->Draw();
-		
-		//アウトライン
-		fbxOutlineShader->Command();
-		meshRenderer->Draw(*player, models[PLAYER], playerAnima.get(), false);
-		outlineShader->Command();
-		meshRenderer->Draw(*ship, models[SHIP], false);
-		meshRenderer->Draw(*testObject, models[SPHERE], false);
-		meshRenderer->Draw(*cafe, models[CAFE], false);
-	}
+	mainRendering->Begin();
+	mainCamera->RegisterCommand(); //通常カメラのセット
+	mainRendering->Draw();
 
 	billboardRenderer->Begin();
-	if (noneState)
+	if (noneState && eventNum == (int)EVENT_ENUM::INSIDE)
 	{
-		if (isInCafe)
-		{
-			billboardRenderer->Draw(textures[TEX_EXIT], cafe->GetPosition() + Vector3(0, 3.5f, -4), Vector2(0.8f));
-		}
+		billboardRenderer->Draw(textures[TEX_EXIT], cafePosition + Vector3(0, 3.5f, 0), Vector2(0.8f));
 	}
 	billboardRenderer->End();
 	
 	//スプライトの描画
 	spriteRenderer->Begin();
-	if (noneState)
+	if (!childScene->IsState("Pause") && !childScene->IsState("FotMode"))
 	{
 		Vector2 size = Application::GetInstance()->GetWindowSize();
-		spriteRenderer->Draw(textures[TEX_OPRATION], Vector2(30, size.y - 30), Vector2::Up(), Vector4(1, 1, 1, 1));
+		spriteRenderer->Draw(textures[TEX_OPRATION], Vector2(30, size.y - 50), Vector2::Up());
 	}
+		
+#ifdef _DEBUG //デバック用
+	auto renderManager = RenderManager::GetInstance();
+	float debugSpriteSize = 256;
+	spriteRenderer->DrawExtend(renderManager->GetRenderTarget(WAVE_TEX + 1), Vector2(0, 0), Vector2(debugSpriteSize));
+	spriteRenderer->DrawExtend(renderManager->GetRenderTarget(NORMAL_TEX + 1), Vector2(0, debugSpriteSize * 1), Vector2(debugSpriteSize));
+	spriteRenderer->DrawExtend(renderManager->GetRenderTarget(REFLECT_TEX + 1), Vector2(0, debugSpriteSize * 2), Vector2(debugSpriteSize));
+#endif
 	childScene->Draw();
 	spriteRenderer->End();
-}
-
+} 
 void GameScene1::Finalize()
 {
 	RenderManager::GetInstance()->Clear();
-	models.clear();
-	textures.clear();
 	isSceneBack = true;
 }
 

@@ -1,55 +1,26 @@
 #include "ObjectManager.h"
 
-gamelib::ObjectManager::ObjectManager()
+void gamelib::ObjectManager::Add(const std::string& objectName, GameObject* pGameObject, bool isActive)
 {
-
-}
-
-gamelib::ObjectManager::~ObjectManager()
-{
-	for (auto it = u_map_gameObjects.begin(); it != u_map_gameObjects.end(); ++it)
-	{
-		for (auto gameObject : it->second)
-		{
-			if (gameObject)
-			{
-				delete gameObject;
-				gameObject = nullptr;
-			}
-		}
-	}
-}
-
-void gamelib::ObjectManager::Add(GameObject* p_gameObject, bool isActive)
-{
-	if (p_gameObject == nullptr)
+	if (pGameObject == nullptr)
 	{
 		return;
 	}
 	if (!isActive)
 	{
-		p_gameObject->Update();
-		p_gameObject->SetActive(isActive);
+		pGameObject->Update();
+		pGameObject->SetActive(isActive);
 	}
-	//変更する
-	u_map_gameObjects["object"].emplace_back(p_gameObject);
-}
-
-void gamelib::ObjectManager::Remove(GameObject* p_gameObject)
-{
-	for (auto it = u_map_gameObjects.begin(); it != u_map_gameObjects.end(); ++it)
-	{
-		if (u_map_gameObjects.find(it->first) != u_map_gameObjects.end())
-		{
-			u_map_gameObjects[it->first].erase(std::remove(u_map_gameObjects[it->first].begin(), u_map_gameObjects[it->first].end(), p_gameObject));
-			return;
-		}
-	}
+	//オブジェクトを追加
+	u_mapGameObjects[objectName].emplace_back();
+	u_mapGameObjects[objectName].back().reset(pGameObject);
+	//参照に変更
+	pGameObject = u_mapGameObjects[objectName].back().get();
 }
 
 void gamelib::ObjectManager::Initialize()
 {
-	for (auto&& vec_gameObjects : u_map_gameObjects)
+	for (auto&& vec_gameObjects : u_mapGameObjects)
 	{
 		for (auto&& gameObject : vec_gameObjects.second)
 		{
@@ -60,7 +31,7 @@ void gamelib::ObjectManager::Initialize()
 
 void gamelib::ObjectManager::Update()
 {
-	for (auto&& vec_gameObjects : u_map_gameObjects)
+	for (auto&& vec_gameObjects : u_mapGameObjects)
 	{
 		for (auto&& gameObject : vec_gameObjects.second)
 		{
@@ -69,14 +40,21 @@ void gamelib::ObjectManager::Update()
 	}
 }
 
-void gamelib::ObjectManager::RegisterAll()
+gamelib::GameObject* gamelib::ObjectManager::Find(const std::string& objectName) const
 {
-	for (auto&& vec_gameObjects : u_map_gameObjects)
+	if (u_mapGameObjects.find(objectName) != u_mapGameObjects.end())
 	{
-		for (auto&& gameObject : vec_gameObjects.second)
-		{
-			gameObject->TransferBuffer();
-		}
+		return u_mapGameObjects.at(objectName).front().get();
 	}
+	return nullptr;
+}
+
+gamelib::GameObject* gamelib::ObjectManager::Find(const std::string& objectName, UINT index) const
+{
+	if (u_mapGameObjects.find(objectName) != u_mapGameObjects.end())
+	{
+		return u_mapGameObjects.at(objectName)[index].get();
+	}
+	return nullptr;
 }
 

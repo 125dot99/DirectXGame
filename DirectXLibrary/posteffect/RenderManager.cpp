@@ -4,25 +4,29 @@
 
 gamelib::RenderManager::RenderManager()
 {
-    vertexBuffer = std::make_unique<VertexBuffer<VertexUv>>();
-    vertexBuffer->Create(4, MESH_PRIMITIVE::TRIANGLE_STRIP);
+    u_pVertexBuffer = std::make_unique<VertexBuffer<VertexUv>>();
+    u_pVertexBuffer->Create(4, MESH_PRIMITIVE::TRIANGLE_STRIP);
 
     VertexUv vertices[4] = {
         { Vector3(-1.0f, -1.0f, 0.0f), Vector2(0.0f, 1.0f) },	//右下
         { Vector3(-1.0f, +1.0f, 0.0f), Vector2(0.0f, 0.0f) },	//右上
         { Vector3(+1.0f, -1.0f, 0.0f), Vector2(1.0f, 1.0f) },	//左下
         { Vector3(+1.0f, +1.0f, 0.0f), Vector2(1.0f, 0.0f) } }; //左上
-    vertexBuffer->Map(vertices);
+    u_pVertexBuffer->Map(vertices);
 
-    descriptorHeapSRV = std::make_shared<DescriptorHeap>();
-    descriptorHeapSRV->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 32);
+    s_pDescriptorHeapSRV = std::make_shared<DescriptorHeap>();
+    s_pDescriptorHeapSRV->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 32);
     
-    descriptorHeapRTV = std::make_shared<DescriptorHeap>();
-    descriptorHeapRTV->Create(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 32);
+    s_pDescriptorHeapRTV = std::make_shared<DescriptorHeap>();
+    s_pDescriptorHeapRTV->Create(D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 32);
 
     //描画元テクスチャ
-    sourceTexture = std::make_unique<RenderTarget>(Vector2::Zero());
-    Add(sourceTexture.get());
+    Add(std::make_shared<RenderTarget>(Vector2::Zero()));
+}
+
+gamelib::RenderManager::~RenderManager()
+{
+
 }
 
 gamelib::RenderManager* gamelib::RenderManager::GetInstance()
@@ -31,55 +35,52 @@ gamelib::RenderManager* gamelib::RenderManager::GetInstance()
     return &instance;
 }
 
-void gamelib::RenderManager::Add(RenderTarget* pRenderTarget)
+void gamelib::RenderManager::Add(std::shared_ptr<RenderTarget> s_pRenderTarget)
 {
-    textures.emplace_back(pRenderTarget);
-    Create(pRenderTarget, (UINT)textures.size() - 1);
+    vecRenderTextures.emplace_back(s_pRenderTarget);
+    s_pRenderTarget->CreateSRV(s_pDescriptorHeapSRV, (UINT)vecRenderTextures.size() - 1);
+    s_pRenderTarget->CreateRTV(s_pDescriptorHeapRTV);
 }
 
 void gamelib::RenderManager::Create(RenderTarget* pRenderTarget, UINT index)
 {
-    pRenderTarget->CreateSRV(descriptorHeapSRV, index);
-    pRenderTarget->CreateRTV(descriptorHeapRTV);
+    pRenderTarget->CreateSRV(s_pDescriptorHeapSRV, index);
+    pRenderTarget->CreateRTV(s_pDescriptorHeapRTV);
 }
 
 void gamelib::RenderManager::WriteStart(bool isClear, bool isDepth)
 {
-    textures[0]->RBRenderTarget(isClear, isDepth);
+    vecRenderTextures[0]->RBRenderTarget(isClear, isDepth);
 }
 
 void gamelib::RenderManager::WriteEnd()
 {
-    textures[0]->RBPixelShaderResource();
+    vecRenderTextures[0]->RBPixelShaderResource();
 }
 
 void gamelib::RenderManager::Result()
 {
-    PipelineManager::GetInstance()->GetPipelineState("PE_None")->Command();
-    textures[0]->GraphicsSRVCommand(0);
+    PipelineManager::GetInstance()->GetPipelineState("PE_None").lock()->Command();
+    vecRenderTextures[0]->GraphicsSRVCommand(0);
     Draw();
 }
 
 void gamelib::RenderManager::Draw()
 {
-    vertexBuffer->BufferCommand();
-    vertexBuffer->Draw();
+    u_pVertexBuffer->BufferCommand();
+    u_pVertexBuffer->Draw();
 }
 
 void gamelib::RenderManager::Clear()
 {
-    if (textures.size() == 1)
+    for (int i = 1; i < vecRenderTextures.size(); i++)
     {
-        return;
-    }
-    for (int i = 1; i < (int)textures.size(); i++)
-    {
-        textures.erase(std::remove(textures.begin(), textures.end(), textures[i]));
+        vecRenderTextures.erase(std::remove(vecRenderTextures.begin(), vecRenderTextures.end(), vecRenderTextures[i]));
         i--;
     }
 }
 
-gamelib::Texture* gamelib::RenderManager::GetRenderTarget(int index) const
+std::weak_ptr<gamelib::Texture> gamelib::RenderManager::GetRenderTarget(int index) const
 {
-    return index >= textures.size() ? textures[0] : textures[index];
+    return index >= vecRenderTextures.size() ? vecRenderTextures[0] : vecRenderTextures[index];
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include <GameLibHeader.h>
+
 #include "GameClock.h"
 #include "GpuTerrainCollider.h"
-#include "Wave.h"
+#include "EventRayDection.h"
 
 using namespace gamelib;
 class GameScene1 : public BaseScene
@@ -15,38 +16,36 @@ private:
 
 	//ライト
 	std::unique_ptr<LightGroup> lightGroup;
+	//UIやフェードインフェードアウト
 	std::unique_ptr<BaseChildScene> childScene;
+
+	Vector3 cafePosition;
+	GameObject* ship;
+	GameObject* player;
+	GameObject* testObject;
 	std::unique_ptr<ObjectManager> objectManager;
 	std::unique_ptr<CollisionManager> collManager;
 
-	GameObject* ship;
-	GameObject* player;
-	GameObject* cafe;
-	GameObject* testObject;
-	GameObject* skydome;
-	GameObject* wave;
-	GameObject* circle;
-
-	std::unique_ptr<FbxAnimation> playerAnima;
-
-	//リソース
-	std::vector<std::weak_ptr<IMesh>> models;
 	std::vector<std::weak_ptr<Texture>> textures;
+	std::unique_ptr<IPostProcess> waveSimRender;
+	std::unique_ptr<IPostProcess> reflectRender;
 
-	std::unique_ptr<IPostProcess> waveSimu;
-	std::unique_ptr<IPostProcess> reflectTexture;
+	enum class EVENT_ENUM
+	{
+		NONE,
+		INSIDE,
+	};
+	int eventNum = (int)EVENT_ENUM::NONE;
+	std::unique_ptr<EventRayDection> rayDection;
 
-	IPipelineState* fbxShader;
-	IPipelineState* toonShader;
-	IPipelineState* skyShader;//空シェーダー
-	IPipelineState* fbxOutlineShader;
-	IPipelineState* outlineShader;
-	
-	std::unique_ptr<MeshRenderer> meshRenderer;
+	//水面用のメッシュ
+	std::shared_ptr<IMesh> waveMesh;
+	std::shared_ptr<IMaterial> waveMaterial;
+	std::unique_ptr<RenderingPipeline> mainRendering;
+	std::unique_ptr<RenderingPipeline> refRendering;
 	std::unique_ptr<SpriteRenderer> spriteRenderer;
 	std::unique_ptr<BillboardRenderer> billboardRenderer;
 
-	std::unique_ptr<Wave> waveRender;
 	std::unique_ptr<GpuTerrainCollider> waveTerrainColl;
 
 	std::unique_ptr<ParticleUnit> particle;
@@ -54,7 +53,6 @@ private:
 	std::unique_ptr<DebugRay> ray;
 	
 	bool debugSpriteEnable = false;
-
 	void Initialize() override;
 	void Update() override;
 	void Draw() override;

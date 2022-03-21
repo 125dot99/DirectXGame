@@ -84,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)DirectXLibrary\lib\fbx_sdk\include;$(IncludePath);</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)$(SolutionDir)DirectXLibrary\lib\fbx_sdk\lib;$(LibraryPath);$(SolutionDir)DirectXLibrary\lib\fbx_sdk\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,6 +168,7 @@
     <ClCompile Include="collision\CollisionManager.cpp" />
     <ClCompile Include="dx12\DescriptorHeap.cpp" />
     <ClCompile Include="dx12\Dx12Renderer.cpp" />
+    <ClCompile Include="dx12\GpuCopyPixels.cpp" />
     <ClCompile Include="dx12\IndexBuffer.cpp" />
     <ClCompile Include="dx12\Material.cpp" />
     <ClCompile Include="dx12\Mesh.cpp" />
@@ -178,6 +179,11 @@
     <ClCompile Include="dx12\Texture.cpp" />
     <ClCompile Include="dx12\VertexBuffer.cpp" />
     <ClCompile Include="gametemp\HitPoint.cpp" />
+    <ClCompile Include="imgui\imgui.cpp" />
+    <ClCompile Include="imgui\imgui_draw.cpp" />
+    <ClCompile Include="imgui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="light\LightGroup.cpp" />
     <ClCompile Include="loader\GctLoader.cpp" />
     <ClCompile Include="loader\JsonLevelLoader.cpp" />
@@ -197,11 +203,6 @@
     <ClCompile Include="loader\ObjLoader.cpp" />
     <ClCompile Include="math\Easing.cpp" />
     <ClCompile Include="mydebug\ImGuiWrapper.cpp" />
-    <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_draw.cpp" />
-    <ClCompile Include="imgui\imgui_impl_dx12.cpp" />
-    <ClCompile Include="imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="particle\ParticleManager.cpp" />
     <ClCompile Include="particle\ParticleUnit.cpp" />
     <ClCompile Include="pipeline\ComputePipeline.cpp" />
@@ -211,12 +212,13 @@
     <ClCompile Include="posteffect\GaussianBlur.cpp" />
     <ClCompile Include="posteffect\PostEffectData.cpp" />
     <ClCompile Include="posteffect\RenderManager.cpp" />
+    <ClCompile Include="posteffect\ShadowMap.cpp" />
     <ClCompile Include="renderer\BillboardRenderer.cpp" />
     <ClCompile Include="renderer\FbxAnimation.cpp" />
     <ClCompile Include="renderer\MeshRenderer.cpp" />
+    <ClCompile Include="renderer\RenderingPipeline.cpp" />
     <ClCompile Include="renderer\SpriteFont.cpp" />
     <ClCompile Include="renderer\SpriteRenderer.cpp" />
-    <ClCompile Include="renderer\SpriteUtil.cpp" />
     <ClCompile Include="scene\SceneManager.cpp" />
     <ClCompile Include="sound\Sound.cpp" />
   </ItemGroup>
@@ -238,10 +240,11 @@
     <ClInclude Include="collision\CollisionHelper.h" />
     <ClInclude Include="collision\CollisionManager.h" />
     <ClInclude Include="collision\CollisionPrimitive.h" />
-    <ClInclude Include="ColorUtility.h" />
     <ClInclude Include="dx12\ConstBuffer.h" />
     <ClInclude Include="dx12\DescriptorHeap.h" />
     <ClInclude Include="dx12\Dx12Renderer.h" />
+    <ClInclude Include="dx12\GpuCopyPixels.h" />
+    <ClInclude Include="dx12\IMaterial.h" />
     <ClInclude Include="dx12\IMesh.h" />
     <ClInclude Include="dx12\IndexBuffer.h" />
     <ClInclude Include="dx12\Material.h" />
@@ -254,9 +257,16 @@
     <ClInclude Include="dx12\Texture.h" />
     <ClInclude Include="dx12\VertexBuffer.h" />
     <ClInclude Include="dx12\VertexData.h" />
-    <ClInclude Include="Factory.h" />
     <ClInclude Include="gametemp\HitPoint.h" />
     <ClInclude Include="gametemp\IObjectState.h" />
+    <ClInclude Include="imgui\imconfig.h" />
+    <ClInclude Include="imgui\imgui.h" />
+    <ClInclude Include="imgui\imgui_impl_dx12.h" />
+    <ClInclude Include="imgui\imgui_impl_win32.h" />
+    <ClInclude Include="imgui\imgui_internal.h" />
+    <ClInclude Include="imgui\imstb_rectpack.h" />
+    <ClInclude Include="imgui\imstb_textedit.h" />
+    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="input\NullGamePad.h" />
     <ClInclude Include="light\LightData.h" />
     <ClInclude Include="light\LightGroup.h" />
@@ -271,6 +281,8 @@
     <ClInclude Include="mydebug\DebugRay.h" />
     <ClInclude Include="object\GameObject.h" />
     <ClInclude Include="object\ObjectManager.h" />
+    <ClInclude Include="other\ColorUtility.h" />
+    <ClInclude Include="other\Factory.h" />
     <ClInclude Include="particle\Emitter.h" />
     <ClInclude Include="particle\Particle.h" />
     <ClInclude Include="particle\ParticleManager.h" />
@@ -294,9 +306,11 @@
     <ClInclude Include="posteffect\IPostProcess.h" />
     <ClInclude Include="posteffect\PostEffectData.h" />
     <ClInclude Include="posteffect\RenderManager.h" />
+    <ClInclude Include="posteffect\ShadowMap.h" />
     <ClInclude Include="renderer\BillboardRenderer.h" />
     <ClInclude Include="renderer\FbxAnimation.h" />
     <ClInclude Include="renderer\MeshRenderer.h" />
+    <ClInclude Include="renderer\RenderingPipeline.h" />
     <ClInclude Include="renderer\SpriteFont.h" />
     <ClInclude Include="renderer\SpriteRenderer.h" />
     <ClInclude Include="renderer\SpriteUtil.h" />
@@ -309,14 +323,6 @@
     <ClInclude Include="Input\IGamepad.h" />
     <ClInclude Include="Input\Keyboard.h" />
     <ClInclude Include="Input\XInputGamepad.h" />
-    <ClInclude Include="imgui\imconfig.h" />
-    <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui\imgui_impl_dx12.h" />
-    <ClInclude Include="imgui\imgui_impl_win32.h" />
-    <ClInclude Include="imgui\imgui_internal.h" />
-    <ClInclude Include="imgui\imstb_rectpack.h" />
-    <ClInclude Include="imgui\imstb_textedit.h" />
-    <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="Math\Matrix4.h" />
     <ClInclude Include="Math\Quaternion.h" />
   </ItemGroup>

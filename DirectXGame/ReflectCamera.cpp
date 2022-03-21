@@ -7,15 +7,16 @@
 
 ReflectCamera::ReflectCamera(const Camera& camera) : Camera(camera)
 {
-	transform->up = Vector3::Up();
+	u_pTransform->up = Vector3::Up();
 }
 
 void ReflectCamera::Update()
 {
-	transform->eye = SceneCameraProvide::GetCamera()->GetEye() * Vector3(1, -1, 1);
-	transform->target = SceneCameraProvide::GetCamera()->GetTarget() * Vector3(1, -1, 1);
+	//メインのカメラを参照
+	u_pTransform->eye = SceneCameraProvide::GetCamera()->GetEye() * Vector3(1, -1, 1);
+	u_pTransform->target = SceneCameraProvide::GetCamera()->GetTarget() * Vector3(1, -1, 1);
 	//ビュー行列
-	matView = MatrixLookAtLH(transform->eye, transform->target, transform->up);
+	matView = MatrixLookAtLH(u_pTransform->eye, u_pTransform->target, u_pTransform->up);
 	//ビュー行列とプロジェクション行列を合成
 	matViewProj = matView * matProjction;
 	

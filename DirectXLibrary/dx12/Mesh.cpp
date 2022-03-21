@@ -2,8 +2,8 @@
 
 gamelib::Mesh::Mesh()
 {
-	vertexBuffer = std::make_unique<VertexBuffer<VertexNormalUv>>();
-	indexBuffer = std::make_unique<IndexBuffer>();
+	u_pVertexBuffer = std::make_unique<VertexBuffer<VertexNormalUv>>();
+	u_pIndexBuffer = std::make_unique<IndexBuffer>();
 }
 
 gamelib::Mesh::~Mesh()
@@ -13,21 +13,13 @@ gamelib::Mesh::~Mesh()
 
 void gamelib::Mesh::CreateBuffers()
 {
-	vertexBuffer->Create(vertexBuffer->vertices.size());
-	vertexBuffer->Map(vertexBuffer->vertices.data());
-	indexBuffer->Create();
-	if (material)
-	{
-		material->Initialize();
-	}
+	u_pVertexBuffer->Create(u_pVertexBuffer->vertices.size());
+	u_pVertexBuffer->Map(u_pVertexBuffer->vertices.data());
+	u_pIndexBuffer->Create();
 }
 
-void gamelib::Mesh::Draw(bool isMtlCommand)
+void gamelib::Mesh::Draw()
 {
-	if (isMtlCommand && material)
-	{
-		material->Command();
-	}
-	vertexBuffer->BufferCommand();
-	indexBuffer->Draw();
+	u_pVertexBuffer->BufferCommand();
+	u_pIndexBuffer->Draw();
 }

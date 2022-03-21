@@ -15,11 +15,11 @@ void TestScene::Initialize()
 
 	object = Factory::Create<GameObject>(Vector3::Zero());
 	object->Initialize();
-	pipeline = PipelineManager::GetInstance()->GetPipelineState("FbxToonShader");
+	//pipeline = PipelineManager::GetInstance()->GetPipelineState("FbxToonShader").lock().get();
 	meshRenderer = Factory::CreateUnique<MeshRenderer>();
 
-	mesh = ResourceManager::GetInstance()->GetModel("char");
-	anima = Factory::Create<FbxAnimation>(mesh.lock().get());
+	mesh = ResourceManager::GetInstance()->GetMesh("char");
+	anima = Factory::Create<FbxAnimation>("char");
 	anima->Play(0);
 }
 
@@ -32,7 +32,6 @@ void TestScene::Update()
 	camera->Update();
 	lightGroup->Update();
 	object->Update();
-	object->TransferBuffer();
 	anima->Update();
 }
 
@@ -41,7 +40,7 @@ void TestScene::Draw()
 	pipeline->Command();
 	camera->RegisterCommand();
 	lightGroup->RegisterAll();
-	meshRenderer->Draw(*object, mesh, anima);
+	//meshRenderer->Draw(*object, mesh, anima);
 }
 
 void TestScene::Finalize()

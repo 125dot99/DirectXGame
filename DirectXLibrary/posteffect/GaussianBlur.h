@@ -13,7 +13,7 @@ private:
 		float gaussian[MAX_WEIGHTS];//ガウシアンぼかし
 	};
 	//ぼかし係数
-	float sigma = 0;
+	float sigma;
 	//ガウス重み
 	float gaussTable[MAX_WEIGHTS]{};
 	//定数バッファ
@@ -24,5 +24,4 @@ public:
 	void Map();
 	void Command();
 };
-
 } // namespace gamelib

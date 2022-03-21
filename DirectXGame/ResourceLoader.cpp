@@ -2,6 +2,7 @@
 
 #include "loader/ResourceManager.h"
 #include "pipeline/PipelineManager.h"
+#include "dx12/Material.h"
 
 using namespace gamelib;
 void resources_loader::Load()
@@ -22,9 +23,23 @@ void resources_loader::Load()
 	resourceManager->LoadTextureFromFile(PATH + "back.png");
 	resourceManager->LoadTextureFromFile(PATH + "char_event.png");
 	resourceManager->LoadTextureFromFile(PATH + "char_event_exit.png");
+	resourceManager->LoadTextureFromFile(PATH + "char_event_game.png");
 	resourceManager->LoadTextureFromFile(PATH + "title.png");
 	resourceManager->LoadTextureFromFile(PATH + "op_ui.png");
-	resourceManager->LoadTextureFromFile(PATH + "pause_ui.png");
+	resourceManager->LoadTextureFromFile(PATH + "fotmode.png");
+	resourceManager->LoadTextureFromFile(PATH + "noon_and_night.png");
+
+	resourceManager->LoadTextureFromFile(PATH + "pause_camera.png");
+	resourceManager->LoadTextureFromFile(PATH + "pause_back.png");
+	resourceManager->LoadTextureFromFile(PATH + "pause_end.png");
+
+	resourceManager->LoadTextureFromFile(PATH + "filter_none.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_gray.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_sepia.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_mosaic.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_grain.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_blur.png");
+	resourceManager->LoadTextureFromFile(PATH + "filter_bloom.png");
 
 	//Particleフォルダ
 	resourceManager->LoadTextureFromFile(PATH + "Particle/effect1.png");
@@ -63,13 +78,16 @@ void resources_loader::Load()
 	resourceManager->LoadSoundFromFile("mini_se_ok.wav");
 
 	//Fbxのマテリアルは直接書き換えられないのでマテリアルを変更
-	Material material;
+	PhongMaterial material;
 	material.ambient = Vector3(0.85f, 0.85f, 0.85f);
 	material.diffuse = Vector3(0.3f, 0.3f, 0.3f);
 	material.specular = Vector3::Zero();
-	resourceManager->RemakeMaterial("char", material);
-	resourceManager->RemakeMaterial("mistress", material);
-	
+	auto fbxMtl1 = std::dynamic_pointer_cast<PhongMaterial>(resourceManager->GetMaterial("char").lock());
+	auto fbxMtl2 = std::dynamic_pointer_cast<PhongMaterial>(resourceManager->GetMaterial("mistress").lock());
+	fbxMtl1->ambient = fbxMtl2->ambient = material.ambient;
+	fbxMtl1->diffuse = fbxMtl2->diffuse = material.diffuse;
+	fbxMtl1->Create();
+	fbxMtl2->Create();
 	OutputDebugStringA("読み込みOK\n");
 	loadFlag = true;
 }

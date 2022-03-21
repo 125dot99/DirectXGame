@@ -2,32 +2,19 @@
 
 gamelib::SkinMesh::SkinMesh()
 {
-	vertexBuffer.reset(new VertexBuffer<VertexNormalUvBones>);
-	indexBuffer.reset(new IndexBuffer);
-}
-
-gamelib::SkinMesh::~SkinMesh()
-{
-
+	u_pVertexBuffer.reset(new VertexBuffer<VertexNormalUvBones>);
+	u_pIndexBuffer.reset(new IndexBuffer);
 }
 
 void gamelib::SkinMesh::CreateBuffers()
 {
-	vertexBuffer->Create(vertexBuffer->vertices.size());
-	vertexBuffer->Map(vertexBuffer->vertices.data());
-	indexBuffer->Create();
-	if (material)
-	{
-		material->Initialize();
-	}
+	u_pVertexBuffer->Create((UINT)u_pVertexBuffer->vertices.size());
+	u_pVertexBuffer->Map(u_pVertexBuffer->vertices.data());
+	u_pIndexBuffer->Create();
 }
 
-void gamelib::SkinMesh::Draw(bool isMtlCommand)
+void gamelib::SkinMesh::Draw()
 {
-	if (isMtlCommand && material)
-	{
-		material->Command();
-	}
-	vertexBuffer->BufferCommand();
-	indexBuffer->Draw();
+	u_pVertexBuffer->BufferCommand();
+	u_pIndexBuffer->Draw();
 }

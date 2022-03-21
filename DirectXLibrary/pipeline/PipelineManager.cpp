@@ -39,14 +39,19 @@ void gamelib::PipelineManager::Initialize()
 	ComputePipelineDesc cpsoDesc{};
 	cpsoDesc.cs.file = "TestCS.hlsl";
 	cpsoDesc.rootParams = { ROOT_PARAMETER::CBV, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::UAV };
-	psoDatas["CSTest"] = std::make_unique<ComputePipeline>(cpsoDesc);
+	u_map_psoDatas["CSTest"] = std::make_shared<ComputePipeline>(cpsoDesc);
+
+	cpsoDesc = {};
+	cpsoDesc.cs.file = "SaveTextureCS.hlsl";
+	cpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::UAV };
+	u_map_psoDatas["SaveTextureCS"] = std::make_shared<ComputePipeline>(cpsoDesc);
 
 #pragma region ライブラリ実装
 
 	GraphicsPipelineDesc gpsoDesc = PObject3DDefalut();
 	gpsoDesc.hlsl.vs.file = "ToonVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "ToonPS.hlsl";
-	psoDatas["ToonShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["ToonShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//アウトライン
 	gpsoDesc = GraphicsPipelineDesc();
@@ -55,7 +60,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.semantics = { "POSITION", "NORMAL", "TEXCOORD" };
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA };//transform
 	gpsoDesc.cullMode = D3D12_CULL_MODE_FRONT;
-	psoDatas["OutlineShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["OutlineShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//Fbxモデルのアウトライン
 	gpsoDesc = GraphicsPipelineDesc();
@@ -65,7 +70,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA, ROOT_PARAMETER::LIGHT,
 		ROOT_PARAMETER::MATERIAL, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::BONE };//transform
 	gpsoDesc.cullMode = D3D12_CULL_MODE_FRONT;
-	psoDatas["FbxOutlineShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["FbxOutlineShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//Fbxモデル
 	gpsoDesc = PObject3DDefalut();
@@ -75,10 +80,10 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.vs.file = "FbxToonVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "FbxToonPS.hlsl";
 	gpsoDesc.rootParams.emplace_back(ROOT_PARAMETER::BONE);
-	psoDatas["FbxToonShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["FbxToonShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	gpsoDesc.hlsl.ps.file = "FbxToonSpotLightPS.hlsl";
-	psoDatas["FbxToonSpotLightShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["FbxToonSpotLightShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	gpsoDesc = GraphicsPipelineDesc();
 	gpsoDesc.semantics = { "POSITION", "COLOR", "TEXCOORD", "PSIZE" };
@@ -89,7 +94,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.depthState = D3D12_DEPTH_WRITE_MASK_ZERO;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA,
 		ROOT_PARAMETER::LIGHT, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE };
-	psoDatas["ParticleToonShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["ParticleToonShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	gpsoDesc = GraphicsPipelineDesc();
 	gpsoDesc.hlsl.vs.file = "VisibleVS.hlsl";
@@ -98,7 +103,22 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.cullMode = D3D12_CULL_MODE_NONE;
 	gpsoDesc.fillMode = D3D12_FILL_MODE_WIREFRAME;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA };//transform
-	psoDatas["VisibleShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["VisibleShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
+
+	gpsoDesc = GraphicsPipelineDesc();
+	gpsoDesc.hlsl.vs.file = "ShadowFBXVS.hlsl";
+	gpsoDesc.hlsl.ps.file = "ShadowFBXPS.hlsl";
+	gpsoDesc.semantics = { "POSITION", "NORMAL", "TEXCOORD", "BONEINDICES", "BONEWEIGHTS" };
+	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA, ROOT_PARAMETER::LIGHT, ROOT_PARAMETER::MATERIAL, 
+		ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::BONE };
+	u_map_psoDatas["ShadowFBX"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
+
+	gpsoDesc = GraphicsPipelineDesc();
+	gpsoDesc.hlsl.vs.file = "ShadowVS.hlsl";
+	gpsoDesc.hlsl.ps.file = "ShadowPS.hlsl";
+	gpsoDesc.semantics = { "POSITION", "NORMAL", "TEXCOORD" };
+	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA, ROOT_PARAMETER::LIGHT, ROOT_PARAMETER::MATERIAL };
+	u_map_psoDatas["Shadow"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 #pragma endregion
 
 #pragma region ポストエフェクト
@@ -106,7 +126,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "PostEffectPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_None"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_None"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//ノイズ専用
 	gpsoDesc = PPosEffectDefalut();
@@ -114,35 +134,35 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "NoisePS.hlsl";
 	gpsoDesc.hlsl.ps.mainEntry = "CellerGray_PSmain";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD };	//texture
-	psoDatas["PE_Noise"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Noise"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//グレースケール
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "GrayColorPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_Gray"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Gray"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//セピア
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "SepiaColorPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_Sepia"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Sepia"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//モザイク
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "PostEffect_MosaicPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_Mosaic"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Mosaic"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//グレイン
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "PostEffect_GrainPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_Grain"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Grain"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//ガウシアンぼかし 横方向ぼかし
 	gpsoDesc = PPosEffectDefalut();
@@ -150,10 +170,10 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "PostEffect_GausswPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::CBV, ROOT_PARAMETER::TEXTURE };
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
-	psoDatas["PE_BlurW"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_BlurW"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
-	psoDatas["PE_R32BlurW"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_R32BlurW"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//縦方向ぼかし
 	gpsoDesc = PPosEffectDefalut();
@@ -161,10 +181,10 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "PostEffect_GausshPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::CBV, ROOT_PARAMETER::TEXTURE };
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
-	psoDatas["PE_BlurH"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_BlurH"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
-	psoDatas["PE_R32BlurH"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_R32BlurH"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//ブルーム 高輝度抽出
 	gpsoDesc = PPosEffectDefalut();
@@ -172,7 +192,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "PostEffect_HighlimPS.hlsl";
 	gpsoDesc.renderFormat = DXGI_FORMAT_R8_UNORM;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_HighLim"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_HighLim"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//HDR R成分のみ
 	gpsoDesc = PPosEffectDefalut();
@@ -180,7 +200,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "PostEffectPS.hlsl";
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
-	psoDatas["PE_R32None"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_R32None"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//ブルーム 合成
 	gpsoDesc = PPosEffectDefalut();
@@ -189,7 +209,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
 	gpsoDesc.blendState = BLEND_STATE::ADD;
-	psoDatas["PE_Bloom"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Bloom"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//ブラウン管モニター
 	gpsoDesc = PPosEffectDefalut();
@@ -197,7 +217,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "PostEffect_RetroPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
-	psoDatas["PE_Retro"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Retro"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 #pragma endregion
 
 #pragma region アプリ側実装
@@ -213,11 +233,11 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.primitive = D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;//パッチ
 	gpsoDesc.rootParams = { ROOT_PARAMETER::WORLD, ROOT_PARAMETER::CAMERA, ROOT_PARAMETER::LIGHT,
 		ROOT_PARAMETER::MATERIAL, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE};
-	psoDatas["WavePatchShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["WavePatchShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//ワイヤー表示
 	gpsoDesc.fillMode = D3D12_FILL_MODE_WIREFRAME;
-	psoDatas["WWavePatchShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["WWavePatchShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//空テスト
 	gpsoDesc = PObject3DDefalut();
@@ -225,7 +245,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "SkydomePS.hlsl";
 	gpsoDesc.cullMode = D3D12_CULL_MODE_FRONT;//面を内側にする
 	gpsoDesc.depthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	psoDatas["SkyShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["SkyShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//ハイトマップをノーマルマップ変換
 	gpsoDesc = PPosEffectDefalut();
@@ -233,7 +253,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "HighNormalPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE };	//texture
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
-	psoDatas["HighNormal"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["HighNormal"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	//波シミュレート
 	gpsoDesc = PPosEffectDefalut();
@@ -242,7 +262,7 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE };
-	psoDatas["WaveSimulateShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["WaveSimulateShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//入力テクスチャ
 	gpsoDesc = PPosEffectDefalut();
@@ -250,29 +270,29 @@ void gamelib::PipelineManager::Initialize()
 	gpsoDesc.hlsl.ps.file = "TexPaintPS.hlsl";
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
 	gpsoDesc.rootParams = { ROOT_PARAMETER::CBV };
-	psoDatas["WavePaintShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["WavePaintShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 	
 	//波シミュレート初期化用
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "WaveInitPS.hlsl";
 	gpsoDesc.renderFormat = DXGI_FORMAT_R32_FLOAT;
-	psoDatas["WaveInitShader"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["WaveInitShader"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 
 	gpsoDesc = PPosEffectDefalut();
 	gpsoDesc.hlsl.vs.file = "PostEffectVS.hlsl";
 	gpsoDesc.hlsl.ps.file = "PostEffect_InvaderPS.hlsl";
 	gpsoDesc.rootParams = { ROOT_PARAMETER::TEXTURE, ROOT_PARAMETER::TEXTURE };
 	gpsoDesc.textureMode = TEXTURE_ADDRESSING_MODE::CLAMP;
-	psoDatas["PE_Inverder"] = std::make_unique<GraphicsPipeline>(gpsoDesc);
+	u_map_psoDatas["PE_Inverder"] = std::make_shared<GraphicsPipeline>(gpsoDesc);
 #pragma endregion
 }
 
-gamelib::IPipelineState* gamelib::PipelineManager::GetPipelineState(const std::string& _pipelineTag) const
+std::weak_ptr<gamelib::IPipelineState> gamelib::PipelineManager::GetPipelineState(const std::string& _pipelineTag) const
 {
-	if (psoDatas.find(_pipelineTag) != psoDatas.end())
+	if (u_map_psoDatas.find(_pipelineTag) != u_map_psoDatas.end())
 	{
-		return psoDatas.at(_pipelineTag).get();
+		return u_map_psoDatas.at(_pipelineTag);
 	}
-	return nullptr;
+	return std::weak_ptr<IPipelineState>();
 }

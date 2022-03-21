@@ -3,27 +3,6 @@
 
 namespace gamelib
 {
-struct SpriteAnimation
-{
-	int count;
-	int startIndex;
-	int animaIndex;
-	int endIndex;
-
-	void SetIndex(int stratIndex, int endIndex);
-	void Update(int fixedFrame);
-};
-struct FontAnimation
-{
-	float time;
-	int animaIndex;
-	int endIndex;
-	
-	void SetIndex(int stratIndex, int endIndex);
-	void Update(float nextAnimaSpeed);
-	bool IsEnd() const;
-};
-
 namespace sprite_util
 {
 inline Vector2 TextureTableIndexXSort(const Vector2& indexSize, int index)

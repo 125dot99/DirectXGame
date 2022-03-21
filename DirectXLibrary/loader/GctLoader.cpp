@@ -5,14 +5,14 @@
 
 gamelib::GctData gamelib::GctLoader::ReadGctData(const std::string& _fileName)
 {
-	GctData output;
-	std::ifstream file;
-
 	const std::string GCT_PATH = "Resources/Text/";
 	std::string fullPath = GCT_PATH + _fileName;
+	
 	//バイナリモードで開く
-	file.open(fullPath, std::ios::in | std::ios::binary);
+	std::ifstream file(fullPath, std::ios::binary);
 	assert(file.is_open() && "読み取りに失敗しました");
+	
+	GctData output;
 	char id[2];
 	file.read((char*)&id, sizeof(id));
 	assert(std::strncmp(id, "ID", 2) == 0);

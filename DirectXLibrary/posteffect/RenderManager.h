@@ -8,16 +8,15 @@ namespace gamelib
 class RenderManager
 {
 private:
-	std::unique_ptr<RenderTarget> sourceTexture;
-	std::unique_ptr<VertexBuffer<VertexUv>> vertexBuffer;
-	std::shared_ptr<DescriptorHeap> descriptorHeapSRV;
-	std::shared_ptr<DescriptorHeap> descriptorHeapRTV;
+	std::unique_ptr<VertexBuffer<VertexUv>> u_pVertexBuffer;
+	std::shared_ptr<DescriptorHeap> s_pDescriptorHeapSRV;
+	std::shared_ptr<DescriptorHeap> s_pDescriptorHeapRTV;
 
 	//レンダーテクスチャの管理
-	std::vector<RenderTarget*> textures;
+	std::vector<std::shared_ptr<RenderTarget>> vecRenderTextures;
 
 	RenderManager();
-	~RenderManager() = default;
+	~RenderManager();
 	RenderManager(const RenderManager&) = delete;
 	void operator=(const RenderManager&) = delete;
 public:
@@ -31,7 +30,7 @@ public:
 	/// レンダーテクスチャの作成、読み取り用テクスチャの追加
 	/// </summary>
 	/// <param name="postEffect"></param>
-	void Add(RenderTarget* pRenderTarget);
+	void Add(std::shared_ptr<RenderTarget> s_pRenderTarget);
 
 	/// <summary>
 	/// レンダーテクスチャの作成
@@ -70,7 +69,7 @@ public:
 	/// </summary>
 	/// <param name="index"></param>
 	/// <returns></returns>
-	Texture* GetRenderTarget(int index) const;
+	std::weak_ptr<Texture> GetRenderTarget(int index) const;
 };
 } // namespace gamelib
 

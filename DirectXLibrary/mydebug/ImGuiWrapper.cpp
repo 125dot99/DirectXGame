@@ -9,8 +9,8 @@
 
 gamelib::ImGuiWrapper::ImGuiWrapper()
 {
-	descriptorHeap = std::make_unique<DescriptorHeap>();
-	descriptorHeap->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
+	u_pDescriptorHeap = std::make_unique<DescriptorHeap>();
+	u_pDescriptorHeap->Create(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1);
 	//ImGuiの内部のバージョンチェック
 	IMGUI_CHECKVERSION();
 	//ImGui本体の初期化
@@ -25,9 +25,9 @@ gamelib::ImGuiWrapper::ImGuiWrapper()
 		Dx12Renderer::GetDevice(),
 		2,							//バックバッファ数
 		DXGI_FORMAT_R8G8B8A8_UNORM,	//バックバッファのフォーマット
-		(ID3D12DescriptorHeap*)descriptorHeap.get(), //デスクリプタヒープ
-		descriptorHeap->GetCPUHandle(0),
-		descriptorHeap->GetGPUHandle(0));
+		reinterpret_cast<ID3D12DescriptorHeap*>(u_pDescriptorHeap.get()), //デスクリプタヒープ
+		u_pDescriptorHeap->GetCPUHandle(0),
+		u_pDescriptorHeap->GetGPUHandle(0));
 	assert(guiFlag && "ImGuiの初期化失敗");
 }
 
@@ -47,8 +47,8 @@ void gamelib::ImGuiWrapper::PreFrame()
 
 void gamelib::ImGuiWrapper::Renderer()
 {
-	descriptorHeap->Command();
-	ImGui::Renderer();
+	u_pDescriptorHeap->Command();
+	ImGui::Render();
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), Dx12Renderer::GetCommandList());
 }
 
