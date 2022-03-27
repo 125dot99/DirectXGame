@@ -1,6 +1,6 @@
 # アンビット（Ambit）：DirectXGameリポジトリ
 
-イラストからインスパイアされた海のゲーム、
+イラストからインスパイアされた海のゲーム
 
 ## ノート
 
@@ -14,6 +14,10 @@
 DirectXTex,
 FBXSDK,
 Imgui
+
+## 作品紹介
+
+https://docs.google.com/presentation/d/1VgSuVIo1EaVOwxMC5kJZ7ldDVvySJGvyq8RDS3648J8/edit?usp=sharing
 
 ## 著者
 
